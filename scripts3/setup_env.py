@@ -25,7 +25,7 @@ import os
 from utils import load_config, prompt_rmdir_warning, rmdir, mkdir, base_dir
 from utils import copy
 from github import Github
-from cmd import run_command
+from command import run_command
 from string import Template
 
 def create_remote_repo(repo_owner, repo_name, github, description = None):

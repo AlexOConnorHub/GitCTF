@@ -1,10 +1,10 @@
 {
-    "instructor": "seongil-wi",
-    "repo_owner": "Demo-Binary-GitCTF",
+    "instructor": "AlexOConnorHub",
+    "repo_owner": "AlexOConnorHub",
     "scoreboard_name": "scoreboard",
     "problems": {
         "problem1": {
-            "base_image": "i386/debian:latest",
+            "base_image": "ubuntu:latest",
             "service_exe_type": "xinetd",
             "repo_name": "team1",
             "description": "team1's service repositoy",
@@ -16,7 +16,7 @@
             "required_packages": "xinetd sudo"
         },
         "problem2": {
-            "base_image": "i386/debian:latest",
+            "base_image": "ubuntu:latest",
             "service_exe_type": "xinetd",
             "repo_name": "team2",
             "description": "team2's service repository",
@@ -28,7 +28,7 @@
             "required_packages": "xinetd sudo"
         },
         "problem3": {
-            "base_image": "i386/debian:latest",
+            "base_image": "ubuntu:latest",
             "service_exe_type": "xinetd",
             "repo_name": "team3",
             "description": "team3's service repository",
@@ -40,7 +40,7 @@
             "required_packages": "xinetd sudo"
         },
         "problem4": {
-            "base_image": "i386/debian:latest",
+            "base_image": "ubuntu:latest",
             "service_exe_type": "xinetd",
             "repo_name": "team4",
             "description": "team4's service repository",

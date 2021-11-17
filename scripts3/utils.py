@@ -32,7 +32,7 @@ import calendar
 import dateutil.parser
 import dateutil.tz
 from random import *
-from cmd import run_command
+from command import run_command
 
 def print_and_log(msg, log=None):
     print(msg)

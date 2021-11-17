@@ -25,7 +25,7 @@ import os
 import sys
 import json
 from utils import rmdir, load_config
-from git import list_branches, clone, checkout
+from cust_git import list_branches, clone, checkout
 from verify_exploit import verify_exploit
 from crypto import decrypt_exploit
 

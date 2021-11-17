@@ -23,7 +23,7 @@
 
 import os
 from utils import base_dir, docker_cleanup
-from cmd import run_command
+from command import run_command
 
 def exec_service(name, service_dir, host_port, service_port):
     docker_cleanup(name)

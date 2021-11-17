@@ -23,8 +23,8 @@
 
 import os
 import sys
-from cmd import run_command
-from git import clone, checkout
+from command import run_command
+from cust_git import clone, checkout
 from utils import base_dir, rmdir, docker_cleanup, load_config
 
 def setup(repo_name, container_name, service_port, host_port):

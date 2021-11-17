@@ -27,8 +27,8 @@ import json
 import time
 from evaluate import get_target_repos
 from utils import prompt_warning, load_config, rmdir
-from git import clone, list_branches, checkout
-from git import get_latest_commit_hash
+from cust_git import clone, list_branches, checkout
+from cust_git import get_latest_commit_hash
 from github import Github
 
 

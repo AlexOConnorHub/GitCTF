@@ -24,7 +24,7 @@
 import subprocess
 import shlex
 
-def run_command(command, path):
+def run_command(command, path) -> list:
     process = subprocess.Popen(shlex.split(command), cwd=path \
             , stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     whole_output = ''
@@ -34,7 +34,7 @@ def run_command(command, path):
             break
         if output:
             print(output.strip())
-            whole_output = whole_output + output.strip()+ '\n'
+            whole_output = whole_output + str(output.strip()) + '\n'
 
     error = process.communicate()[1]
     return whole_output, error, process.returncode

@@ -23,7 +23,7 @@
 
 import sys
 import json
-from git import list_branches
+from cust_git import list_branches
 from verify_exploit import verify_exploit
 from crypto import encrypt_exploit
 from issue import submit_issue

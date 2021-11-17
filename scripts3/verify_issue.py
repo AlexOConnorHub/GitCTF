@@ -26,14 +26,14 @@ import json
 import os
 from utils import load_config, rmfile, mkdir, random_string, rmdir
 from utils import prompt_checkout_warning, print_and_log
-from git import list_branches, clone, checkout
-from git import get_latest_commit_hash
+from cust_git import list_branches, clone, checkout
+from cust_git import get_latest_commit_hash
 from issue import get_github_issue
 from crypto import decrypt_exploit
 from verify_exploit import verify_exploit
 from github import Github
 from datetime import datetime
-from cmd import run_command
+from command import run_command
 
 def verify_issue(defender, repo_name, issue_no, config, github, target_commit=None):
     timeout = config["exploit_timeout"]["exercise_phase"]

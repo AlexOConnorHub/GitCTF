@@ -23,7 +23,7 @@
 
 import os
 import sys
-from cmd import run_command
+from command import run_command
 from utils import base_dir, prompt_rmdir_warning, rmdir
 
 def list_branches(dir):

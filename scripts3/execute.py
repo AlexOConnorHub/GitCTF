@@ -30,7 +30,7 @@ def exec_service(name, service_dir, host_port, service_port):
     script = os.path.join(base_dir(), "setup_service.sh")
     host_port = int(host_port)
     service_port = int(service_port)
-    _, err, e = run_command(f'{script} "{name}" {host_port} {service_port}', service_dir)
+    _, err, e = run_command(f'{script} "{name}" {service_port} {host_port}', service_dir)
     if e != 0:
         print(err)
         print('[*] Failed to execute the service.')

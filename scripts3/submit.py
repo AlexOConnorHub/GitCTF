@@ -23,11 +23,11 @@
 
 import sys
 import json
-from cust_git import list_branches
+from ctf_git import list_branches
 from verify_exploit import verify_exploit
 from crypto import encrypt_exploit
 from issue import submit_issue
-from utils import rmfile, load_config, prompt_checkout_warning
+from ctf_utils import rmfile, load_config, prompt_checkout_warning
 from github import Github
 
 def submit(exploit_dir, service_dir, branch, target, config_file, token=None):

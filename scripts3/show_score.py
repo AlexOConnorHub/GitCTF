@@ -26,7 +26,7 @@ import sys
 import csv
 import json
 import time
-from utils import load_config, iso8601_to_timestamp, is_timeover
+from ctf_utils import load_config, iso8601_to_timestamp, is_timeover
 from github import Github, decode_content, get_github_path
 from io import StringIO
 from string import Template

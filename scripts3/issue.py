@@ -23,7 +23,7 @@
 
 import json
 import sys
-from utils import iso8601_to_timestamp
+from ctf_utils import iso8601_to_timestamp
 from datetime import datetime, timedelta
 
 def create_label(repo_owner, repo_name, label_name, \

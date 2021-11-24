@@ -31,9 +31,9 @@ import calendar
 from issue import is_closed, create_comment, close_issue
 from issue import create_label, update_label, get_github_issue
 from command import run_command
-from utils import load_config, rmdir, rmfile, iso8601_to_timestamp, is_timeover
+from ctf_utils import load_config, rmdir, rmfile, iso8601_to_timestamp, is_timeover
 from github import Github, get_github_path
-from cust_git import clone, checkout, get_next_commit_hash
+from ctf_git import clone, checkout, get_next_commit_hash
 from verify_issue import verify_issue
 import importlib
 

@@ -24,7 +24,7 @@
 
 import sys
 import argparse
-from utils import prompt_checkout_warning, load_config
+from ctf_utils import prompt_checkout_warning, load_config
 from execute import exec_service, exec_exploit
 from submit import submit
 from fetch import fetch

@@ -24,8 +24,8 @@
 import sys
 import json
 import os
-from utils import load_config, rmfile, mkdir, random_string, rmdir
-from utils import prompt_rmdir_warning
+from ctf_utils import load_config, rmfile, mkdir, random_string, rmdir
+from ctf_utils import prompt_rmdir_warning
 from issue import get_github_issue
 from crypto import decrypt_exploit
 from github import Github

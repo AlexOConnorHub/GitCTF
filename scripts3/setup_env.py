@@ -22,8 +22,8 @@
 #  limitations under the License.
 import json
 import os
-from utils import load_config, prompt_rmdir_warning, rmdir, mkdir, base_dir
-from utils import copy
+from ctf_utils import load_config, prompt_rmdir_warning, rmdir, mkdir, base_dir
+from ctf_utils import copy
 from github import Github
 from command import run_command
 from string import Template

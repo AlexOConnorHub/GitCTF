@@ -24,8 +24,8 @@
 import os
 import sys
 from command import run_command
-from cust_git import clone, checkout
-from utils import base_dir, rmdir, docker_cleanup, load_config
+from ctf_git import clone, checkout
+from ctf_utils import base_dir, rmdir, docker_cleanup, load_config
 
 def setup(repo_name, container_name, service_port, host_port):
     script = os.path.join(base_dir(), "setup_service.sh")

@@ -28,7 +28,7 @@ import subprocess
 import re
 import shutil
 import zipfile
-from utils import random_string, rmdir, rmfile, remove_trailing_slash
+from ctf_utils import random_string, rmdir, rmfile, remove_trailing_slash
 from command import run_command
 
 def decrypt_exploit(encrypted_exploit_path, config, team, out_dir=None, \

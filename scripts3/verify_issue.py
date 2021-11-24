@@ -24,10 +24,10 @@
 import sys
 import json
 import os
-from utils import load_config, rmfile, mkdir, random_string, rmdir
-from utils import prompt_checkout_warning, print_and_log
-from cust_git import list_branches, clone, checkout
-from cust_git import get_latest_commit_hash
+from ctf_utils import load_config, rmfile, mkdir, random_string, rmdir
+from ctf_utils import prompt_checkout_warning, print_and_log
+from ctf_git import list_branches, clone, checkout
+from ctf_git import get_latest_commit_hash
 from issue import get_github_issue
 from crypto import decrypt_exploit
 from verify_exploit import verify_exploit

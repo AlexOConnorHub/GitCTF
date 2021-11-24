@@ -24,8 +24,8 @@
 import os
 import sys
 import json
-from utils import rmdir, load_config
-from cust_git import list_branches, clone, checkout
+from ctf_utils import rmdir, load_config
+from ctf_git import list_branches, clone, checkout
 from verify_exploit import verify_exploit
 from crypto import decrypt_exploit
 

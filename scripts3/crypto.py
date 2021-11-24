@@ -58,7 +58,7 @@ def decrypt_exploit(encrypted_exploit_path, config, team, out_dir=None, \
 
     _, err, r = run_command(decrypt_cmd, os.getcwd())
     if r != 0:
-        print("[*] Failed to decrypt/verify %s" % encrypted_exploit_path)
+        print(f"[*] Failed to decrypt/verify {encrypted_exploit_path}")
         print(err)
         return None
 
@@ -97,7 +97,7 @@ def encrypt_exploit(exploit_dir, target_team, config, signer=None):
     _, err, ret = run_command(encrypt_cmd, None)
     rmfile(zip_file) # Clean up zip file.
     if ret != 0:
-        print("[*] Failed to sign/encrypt %s" % zip_file)
+        print(f"[*] Failed to sign/encrypt {zip_file}")
         print(err)
         return None
 

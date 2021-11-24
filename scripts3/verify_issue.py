@@ -91,18 +91,15 @@ def verify_issue(defender, repo_name, issue_no, config, github, target_commit=No
     rmdir(repo_name)
 
     if verified_branch is None:
-        print(("[*] The exploit did not work against branch '%s'" % \
-                target_branch))
+        print(f"[*] The exploit did not work against branch '{target_branch}'")
     else:
-        print(("[*] The exploit has been verified against branch '%s'" %
-              verified_branch))
+        print(f"[*] The exploit has been verified against branch '{verified_branch}'")
 
     return (verified_branch, verified_commit, submitter, log)
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:
-        print(("Usage: %s [repo name] [issue no] [config]" %
-              sys.argv[0]))
+        print(f"Usage: {sys.argv[0]} [repo name] [issue no] [config]")
         sys.exit()
     repo_name = sys.argv[1]
     issue_no = sys.argv[2]

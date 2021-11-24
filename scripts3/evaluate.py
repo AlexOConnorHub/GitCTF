@@ -219,7 +219,7 @@ def process_issue(repo_name, num, id, config, gen_time, github, scoreboard):
 
     defender = get_defender(config, repo_name)
     if defender is None:
-        print('[*] Fatal error: unknown target %s.' % repo_name)
+        print(f'[*] Fatal error: unknown target {repo_name}.')
         sys.exit()
         return
 
@@ -265,10 +265,10 @@ def start_eval(config, github):
             finalize = True
         issues, interval = get_issues(target_repos, github)
         if not issues:
-            print(('[*] No news. Sleep for %d seconds.' % interval))
+            print(f'[*] No news. Sleep for {str(interval)} seconds.')
             time.sleep(interval)
             continue
-        print(('[*] %d new issues.' % len(issues)))
+        print((f"[*] {str(len(issues))} new issues."))
         for repo, num, id, gen_time in issues:
             process_issue(repo, num, id, config, gen_time, github, scoreboard)
     print('[*] Time is over!')

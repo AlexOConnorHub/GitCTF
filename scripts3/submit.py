@@ -43,8 +43,7 @@ def submit(exploit_dir, service_dir, branch, target, config_file, token=None):
         print("[*] Your exploit did not work against any of the branch")
         sys.exit()
 
-    print(("[*] Your exploit has been verified against branch '%s'"
-            % verified_branch))
+    print(f"[*] Your exploit has been verified against branch '{verified_branch}'")
 
     # Not encrypt exploit
     signer = config["player"]
@@ -64,8 +63,7 @@ def submit(exploit_dir, service_dir, branch, target, config_file, token=None):
 
 if __name__ == "__main__":
     if len(sys.argv) != 5:
-        print(("Usage: %s [exploit dir] [service dir] [branch] [team] [config]" %
-              sys.argv[0]))
+        print(f"Usage: {sys.argv[0]} [exploit dir] [service dir] [branch] [team] [config]")
         sys.exit()
     exploit_dir = sys.argv[1]
     service_dir = sys.argv[2]

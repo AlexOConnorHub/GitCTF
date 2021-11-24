@@ -34,12 +34,12 @@ def create_remote_repo(repo_owner, repo_name, github, description = None):
     repo = {'name': repo_name, 'description': description, 'private': True}
     r = github.post(query, json.dumps(repo), 201)
 
-    print('[*] Creating %s remote repository' % (repo_name))
+    print(f'[*] Creating {repo_name} remote repository')
     if r is None:
-        print('[*] Failed to create remote repository "%s".' % repo_name)
+        print(f'[*] Failed to create remote repository "{repo_name}".')
         print('[*] Response:', r)
     else:
-        print('[*] Successfully created remote repository "%s".' % repo_name)
+        print(f'[*] Successfully created remote repository "{repo_name}".')
 
 def init_repo(dir_path):
     _, _, r = run_command('git init', dir_path)
@@ -49,27 +49,27 @@ def init_repo(dir_path):
     _, _, r = run_command('git remote add origin git@github.com:%s.git' % \
             (dir_path), dir_path)
     if r != 0:
-        print('[*] Failed to git remote add origin %s.' % (dir_path))
+        print(f'[*] Failed to git remote add origin {dir_path}.')
         return False
     return True
 
 def create_local_repo(dir_path):
-    print('[*] Creating %s local repositoy.' % (dir_path))
+    print(f'[*] Creating {dir_path} local repositoy.')
     mkdir(dir_path)
     return init_repo(dir_path)
 
 def commit_and_push(path, msg):
     _, _, r = run_command('git add -A .', path)
     if r != 0:
-        print(('[*] Failed to git add -A . in %s.' % path))
+        print(f'[*] Failed to git add -A . in {path}.')
         return False
     _, _, r = run_command('git commit -m "%s"' % (msg), path)
     if r != 0:
-        print(('[*] Failed to commit in %s.' % path))
+        print(f'[*] Failed to commit in {path}.')
         return False
     _, _, r = run_command('git push -f -u origin master', path)
     if r != 0:
-        print(('[*] Failed to push in %s.' % path))
+        print(f'[*] Failed to push in {path}.')
         return False
     return True
 
@@ -127,7 +127,7 @@ def create_dockerfile(problem_info, repo_dir_path):
     elif problem_info['service_exe_type'] == 'stand-alone':
         pass
     else:
-        print('[*] Failed to make Dockerfile from %s' % repo_dir_path)
+        print(f'[*] Failed to make Dockerfile from {repo_dir_path}')
         return
 
     s = Template(dockerfile)

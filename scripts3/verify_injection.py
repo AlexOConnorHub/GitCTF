@@ -61,13 +61,13 @@ def verify_injection(team, config_file):
         rmdir(exploit_dir)
 
         if master_result == False and bug_branch_result == True:
-            print('[*] Successflly verified branch "%s".' % branch)
+            print(f'[*] Successflly verified branch "{branch}".')
         elif bug_branch_result == True :
-            print(('[*] Exploit for branch "%s" works, but it also works on ' \
-                   'master branch, which indicates some error.' %  branch))
+            print(f'[*] Exploit for branch "{branch}" works, but it also works on ' \
+                   'master branch, which indicates some error.')
             sys.exit()
         else :
-            print('[*] Failed to verify exploit in branch "%s".' %  branch)
+            print(f'[*] Failed to verify exploit in branch "{branch}".')
             sys.exit()
 
     rmdir(repo_name)

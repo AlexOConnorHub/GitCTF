@@ -32,7 +32,7 @@ def decode_content(response):
     if response['encoding'] == 'base64':
         return base64.b64decode(response['content'])
     else:
-        print(('[*] Unknown encoding %s' % response['encoding']))
+        print(f"[*] Unknown encoding {response['encoding']}")
         sys.exit()
 
 def trim_dot_git(repo_name):

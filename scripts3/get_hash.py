@@ -39,7 +39,7 @@ def start_get_hash(config, github, config_file):
         if repo_name == '-':
             continue
 
-        print(('[*] Get the commit hash of %s repo.' % repo_name))
+        print(f'[*] Get the commit hash of {repo_name} repo.')
         clone(repo_owner, repo_name)
         branches = list_branches(repo_name)
         branches.remove("master") # Do not consider master branch
@@ -52,7 +52,7 @@ def start_get_hash(config, github, config_file):
     with open(config_file, 'w') as outfile:
         json.dump(config, outfile, indent=4)
 
-    print(('[*] Successfully write in %s' % config_file))
+    print(f'[*] Successfully write in {config_file}')
 
     return
 

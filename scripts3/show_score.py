@@ -82,7 +82,7 @@ def display_score(data, freq, unintended_pts, end_time, pin_time = None):
         # Print out
         for team, points in sorted(iter(score.items()),
                                key=lambda k_v: k_v[1], reverse=True):
-            print(('%-20s: %d' % (team, points)))
+            print(f'{points[:20]}: {len(points)}')
     else:
         return score
 
@@ -126,7 +126,7 @@ def show_score(token, config_file):
     path = get_github_path(scoreboard_url)
     g = Github(config['player'], token)
     if g.get('/repos/' + path) is None:
-        print(('[*] Failed to access the repository %s' % path))
+        print(f'[*] Failed to access the repository {path}')
         sys.exit()
     r = g.get('/repos/' + path + '/contents/' + 'score.csv')
     if r is None:

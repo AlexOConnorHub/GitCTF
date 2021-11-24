@@ -51,15 +51,14 @@ def fetch(team, issue_no, config, token=None):
     team = config["player_team"]
     out_dir = decrypt_exploit(tmpfile, config, team, out_dir, submitter)
     if out_dir is not None:
-        print("Exploit fetched into %s" % out_dir)
+        print(f"Exploit fetched into {out_dir}")
 
     # Clean up
     rmfile(tmpfile)
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:
-        print(("Usage: %s [team] [issue no] [config]" %
-              sys.argv[0]))
+        print(f"Usage: {sys.argv[0]} [team] [issue no] [config]")
         sys.exit()
     team = sys.argv[1]
     issue_no = sys.argv[2]

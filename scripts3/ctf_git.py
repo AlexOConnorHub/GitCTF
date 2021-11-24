@@ -37,36 +37,34 @@ def clone(repo_owner, repo_name, prompt=False, target_dir=None):
     if prompt:
         prompt_rmdir_warning(target)
     rmdir(target)
-    url = 'git@github.com:%s/%s' % (repo_owner, repo_name)
-    _, err, r = run_command("git clone %s %s" % (url, target), os.getcwd())
+    url = f'git@github.com:{repo_owner}/{repo_name}'
+    _, err, r = run_command(f"git clone {url} {target}", os.getcwd())
     if r!= 0:
-        print('[*] Failed to clone: "%s"' % url)
+        print(f'[*] Failed to clone: "{url}"')
         print(err)
         sys.exit()
 
 def checkout(dir, br):
-    _, err, r = run_command("git -C %s checkout -f %s" % (dir, br), os.getcwd())
+    _, err, r = run_command(f"git -C {dir} checkout -f {br}", os.getcwd())
     if r != 0:
-        print(("[*] Failed to checkout the branch %s" % br))
+        print(f"[*] Failed to checkout the branch {br}")
         print(err)
         sys.exit()
 
 def get_latest_commit_hash(dir, create_time, branch='master'):
-    command = 'git -C %s rev-list --max-count=1 --before=%d origin/%s' \
-                    % (dir, create_time, branch)
+    command = f'git -C {dir} rev-list --max-count=1 --before={create_time} origin/{branch}'
     output, err, r = run_command(command, os.getcwd())
     if r != 0:
-        print(("[*] Failed to get the latest commit before %s" % create_time))
+        print(f"[*] Failed to get the latest commit before {create_time}")
         print(err)
         sys.exit()
     return output.strip()
 
 def get_next_commit_hash(dir, branch, commit_hash):
-    command = 'git -C %s rev-list --reverse --ancestry-path %s..origin/%s' \
-            % (dir, commit_hash, branch)
+    command = f'git -C {dir} rev-list --reverse --ancestry-path {commit_hash}..origin/{branch}'
     output, err, r = run_command(command, os.getcwd())
     if r != 0:
-        print(("[*] Failed to get the next commit after %s" % commit_hash))
+        print(f"[*] Failed to get the next commit after {commit_hash}")
         print(err)
         sys.exit()
     output = output.split('\n')[0]

@@ -39,12 +39,12 @@ def fetch(team, issue_no, config, token=None):
         get_github_issue(repo_owner, repo_name, issue_no, github)
 
     # Write the fetched issue content to temp file
-    tmpfile = "/tmp/gitctf_%s.issue" % random_string(6)
+    tmpfile = f"/tmp/gitctf_{random_string(6)}.issue"
     with open(tmpfile, "w") as f:
         f.write(content)
 
     # Decrypt the exploit
-    out_dir = "exploit-%s-%s" % (submitter, create_time)
+    out_dir = f"exploit-{submitter}-{create_time}"
     prompt_rmdir_warning(out_dir)
     rmdir(out_dir)
     mkdir(out_dir)

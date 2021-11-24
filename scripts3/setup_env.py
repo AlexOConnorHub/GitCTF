@@ -46,8 +46,7 @@ def init_repo(dir_path):
     if r != 0:
         print('[*] Failed to git init')
         return False
-    _, _, r = run_command('git remote add origin git@github.com:%s.git' % \
-            (dir_path), dir_path)
+    _, _, r = run_command(f'git remote add origin git@github.com:{dir_path}.git', dir_path)
     if r != 0:
         print(f'[*] Failed to git remote add origin {dir_path}.')
         return False
@@ -63,7 +62,7 @@ def commit_and_push(path, msg):
     if r != 0:
         print(f'[*] Failed to git add -A . in {path}.')
         return False
-    _, _, r = run_command('git commit -m "%s"' % (msg), path)
+    _, _, r = run_command(f'git commit -m "{msg}"', path)
     if r != 0:
         print(f'[*] Failed to commit in {path}.')
         return False
@@ -81,7 +80,7 @@ def create_xinetd_config(problem_info, repo_dir_path, bin_name):
     with open(os.path.join(base_dir(), 'xinetd_conf.template'), 'r') as f:
         service_conf = f.read()
 
-    service_conf_name = '%s_service_conf' % bin_name
+    service_conf_name = f'{bin_name}_service_conf'
     bin_dst_path = problem_info['bin_dst_path']
     bin_args = problem_info['bin_args']
     port = problem_info['port']
@@ -101,9 +100,8 @@ def create_xinetd_config(problem_info, repo_dir_path, bin_name):
 def make_xinetd_exec_env(problem_info, repo_dir_path, bin_name):
     service_conf_name = \
             create_xinetd_config(problem_info, repo_dir_path, bin_name)
-    exec_command = 'COPY %s /etc/xinetd.d\n' % service_conf_name
-    exec_command += 'RUN echo "%s %s/tcp" >> /etc/services\n' % \
-                                      (service_conf_name, problem_info['port'])
+    exec_command = f'COPY {service_conf_name} /etc/xinetd.d\n'
+    exec_command += f'RUN echo "{service_conf_name} {problem_info["port"]}/tcp" >> /etc/services\n'
     exec_command += 'RUN service xinetd restart\n'
     exec_command += 'ENTRYPOINT ["xinetd", "-dontfork"]'
     return exec_command
@@ -185,8 +183,7 @@ def remote_setup(repo_owner, scoreboard_name, problems, github):
         create_remote_repo(repo_owner, prob_repo_name, github, description)
         repo_dir_path = os.path.join(repo_owner, \
                     problems[problem]['repo_name'])
-        commit_and_push(repo_dir_path, 'Add problem: %s' % \
-                    prob_repo_name)
+        commit_and_push(repo_dir_path, f'Add problem: {prob_repo_name}')
 
 def setup_env(admin_config_file, token=None):
     admin_config = load_config(admin_config_file)

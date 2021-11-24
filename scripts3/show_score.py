@@ -95,15 +95,15 @@ def make_html(log, config):
     col_var = ''
     players = list(config['individual'].keys())
     for player in players:
-        col_var += '    data.addColumn("number","%s");\n' % player
+        col_var += f'    data.addColumn("number","{player}");\n'
 
     graph_data = ''
     for key in sorted(log):
         graph_data += '        ['
-        graph_data += '%s, ' % key
+        graph_data += f'{key}, '
         for player in players:
             if player in log[key]:
-                graph_data += '%s, ' % str(log[key][player])
+                graph_data += f'{str(log[key][player])}, '
             else:
                 graph_data += '0, '
 

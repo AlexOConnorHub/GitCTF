@@ -47,8 +47,8 @@ def verify_issue(defender, repo_name, issue_no, config, github, target_commit=No
     clone(repo_owner, repo_name)
 
     # Write the fetched issue content to temp file
-    tmpfile = "/tmp/gitctf_%s.issue" % random_string(6)
-    tmpdir = "/tmp/gitctf_%s.dir" % random_string(6)
+    tmpfile = f"/tmp/gitctf_{random_string(6)}.issue"
+    tmpdir = f"/tmp/gitctf_{random_string(6)}.dir"
 
     with open(tmpfile, "w") as f:
         f.write(content)
@@ -72,7 +72,7 @@ def verify_issue(defender, repo_name, issue_no, config, github, target_commit=No
     verified_branch = None
     verified_commit = None
 
-    log = 'About %s (exploit-service branch)\n' % title
+    log = f'About {title} (exploit-service branch)\n'
 
     for (branch, commit) in candidates:
         if branch in title:

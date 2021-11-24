@@ -57,7 +57,7 @@ def start_get_hash(config, github, config_file):
     return
 
 def get_hash(config_file, token):
-    prompt_warning('File %s will be changed.' % config_file)
+    prompt_warning(f'File {config_file} will be changed.')
     config = load_config(config_file)
     github = Github(config['player'], token)
     return start_get_hash(config, github, config_file)

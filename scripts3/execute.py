@@ -30,8 +30,7 @@ def exec_service(name, service_dir, host_port, service_port):
     script = os.path.join(base_dir(), "setup_service.sh")
     host_port = int(host_port)
     service_port = int(service_port)
-    _, err, e = run_command('%s "%s" %d %d' % \
-                          (script, name, host_port, service_port), service_dir)
+    _, err, e = run_command(f'{script} "{name}" {host_port} {service_port}', service_dir)
     if e != 0:
         print(err)
         print('[*] Failed to execute the service.')
@@ -41,9 +40,7 @@ def exec_service(name, service_dir, host_port, service_port):
 def exec_exploit(name, exploit_dir, ip, port, timeout):
     docker_cleanup(name)
     script = os.path.join(base_dir(), "launch_exploit.sh")
-    _, err, e = run_command('%s "%s" %s %d %d' % \
-                          (script, name, ip, port, \
-                          timeout), exploit_dir)
+    _, err, e = run_command(f'{script} "{name}" {ip} {port} {timeout}', exploit_dir)
     if e != 0:
         print(err)
         print('[*] Failed to execute the service.')

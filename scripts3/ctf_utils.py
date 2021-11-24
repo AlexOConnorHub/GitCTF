@@ -88,9 +88,9 @@ def base_dir():
 
 # Kill and remove the specified docker container
 def docker_cleanup(container_name):
-    print("[*] Clean up container '%s'" % container_name)
+    print(f"[*] Clean up container '{container_name}'")
     script = os.path.join(base_dir(), "cleanup.sh")
-    cmdline = "%s %s" % (script, container_name)
+    cmdline = f"{script} {container_name}"
     run_command(cmdline, None)
 
 def load_config(config_file):
@@ -98,7 +98,7 @@ def load_config(config_file):
         with open(config_file) as f:
             return json.load(f)
     except Exception as e:
-        print("Cannot load configuration file %s" % config_file)
+        print(f"Cannot load configuration file {config_file}")
         print(repr(e))
         sys.exit(0)
 
@@ -118,13 +118,13 @@ def prompt_warning(msg):
 
 def prompt_rmdir_warning(dir):
     if os.path.isdir(dir):
-        warning_msg = "Directory %s already exists. " % dir
+        warning_msg = f"Directory {dir} already exists. "
         warning_msg += "We will remove this directory and create new directory."
         prompt_warning(warning_msg)
 
 def prompt_checkout_warning(dir):
     if os.path.isdir(dir):
-        warning_msg = "We will forcefully checkout branch from %s. " % dir
+        warning_msg = f"We will forcefully checkout branch from {dir}. "
         warning_msg += "You will lose ongoing works which are not commited yet."
         prompt_warning(warning_msg)
 

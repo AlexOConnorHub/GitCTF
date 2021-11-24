@@ -106,8 +106,7 @@ def write_score(stamp, info, scoreboard_dir, pts):
         defender = info['defender']
         branch = info['branch']
         kind = info['bugkind']
-        f.write('%s,%s,%s,%s,%s,%d\n' % (stamp, attacker, defender, branch, \
-                kind, pts))
+        f.write(f'{stamp},{attacker},{defender},{branch},{kind},{pts}\n')
 
 def write_message(info, scoreboard_dir, pts):
     with open(os.path.join(scoreboard_dir, msg_file), 'w') as f:
@@ -115,18 +114,18 @@ def write_message(info, scoreboard_dir, pts):
         defender = info['defender']
         branch = info['branch']
         kind = info['bugkind']
-        f.write('[Score] %s +%d\n\n' % (attacker, pts))
+        f.write(f'[Score] {attacker} +{pts}\n\n')
         if pts == 0: # Protocol to indicate successfull defense
-            f.write('%s defended `%s` %s with %s' % (defender, branch, attacker, kind))
+            f.write(f'{defender} defended `{branch}` {attacker} with {kind}')
         else:
-            f.write('%s attacked `%s` %s of %s' % (attacker, branch, kind, defender))
+            f.write(f'{attacker} attacked `{branch}` {kind} of {defender}')
 
 def commit_and_push(scoreboard_dir):
     _, _, r = run_command('git add score.csv', scoreboard_dir)
     if r != 0:
         print('[*] Failed to git add score.csv.')
         return False
-    _, _, r = run_command('git commit -F %s' % msg_file, scoreboard_dir)
+    _, _, r = run_command(f'git commit -F {msg_file}', scoreboard_dir)
     if r != 0:
         print('[*] Failed to commit score.csv.')
         return False
@@ -233,7 +232,7 @@ def process_issue(repo_name, num, id, config, gen_time, github, scoreboard):
 
     if config['individual'][attacker]['team'] == defender:
         failure_action(repo_owner, repo_name, num, \
-                '[*] Self-attack is not allowed: %s.' % attacker, \
+                f'[*] Self-attack is not allowed: {attacker}.', \
                 id, github)
         return
 

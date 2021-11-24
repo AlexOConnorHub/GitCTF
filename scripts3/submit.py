@@ -53,7 +53,7 @@ def submit(exploit_dir, service_dir, branch, target, config_file, token=None):
         sys.exit(0)
 
     # Submit an issue with the encrypted exploit
-    issue_title = "exploit-%s" % verified_branch
+    issue_title = f"exploit-{verified_branch}"
     github = Github(config["player"], token)
     submit_issue(issue_title, encrypted_exploit, target, config, github)
 

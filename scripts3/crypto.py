@@ -38,23 +38,22 @@ def decrypt_exploit(encrypted_exploit_path, config, team, out_dir=None, \
 
     rmdir(out_dir)
 
-    tmpzip = "/tmp/gitctf_%s.zip" % random_string(6)
-    tmpdir = "/tmp/gitctf_%s" % random_string(6)
-    tmpgpg = "/tmp/gitctf_%s.gpg" % random_string (6)
+    tmpzip = f"/tmp/gitctf_{random_string(6)}.zip"
+    tmpdir = f"/tmp/gitctf_{random_string(6)}"
+    tmpgpg = f"/tmp/gitctf_{random_string(6)}.gpg"
 
     if expected_signer == None:
-        decrypt_cmd = 'gpg -o %s %s' % (tmpzip, encrypted_exploit_path)
+        decrypt_cmd = f'gpg -o {tmpzip} {encrypted_exploit_path}'
     else:
         instructor_id = config['teams']['instructor']['pub_key_id']
         team_id = config['teams'][team]['pub_key_id']
         expected_signer_id = config['individual'][expected_signer]['pub_key_id']
 
         # Make keyring
-        run_command("gpg -o %s --export %s %s %s" % (tmpgpg, \
-                expected_signer_id, instructor_id, team_id), os.getcwd())
+        run_command(f"gpg -o {tmpgpg} --export {expected_signer_id} {instructor_id} \
+            {team_id}", os.getcwd())
 
-        decrypt_cmd = "gpg --no-default-keyring --keyring %s -o %s %s" \
-                % (tmpgpg, tmpzip, encrypted_exploit_path)
+        decrypt_cmd = f"gpg --no-default-keyring --keyring {tmpgpg} -o {tmpzip} {encrypted_exploit_path}"
 
     _, err, r = run_command(decrypt_cmd, os.getcwd())
     if r != 0:
@@ -62,7 +61,7 @@ def decrypt_exploit(encrypted_exploit_path, config, team, out_dir=None, \
         print(err)
         return None
 
-    run_command('unzip %s -d %s' % (tmpzip, tmpdir), os.getcwd())
+    run_command(f'unzip {tmpzip} -d {tmpdir}', os.getcwd())
     shutil.move(tmpdir, out_dir)
 
     rmfile(tmpzip)
@@ -82,18 +81,18 @@ def encrypt_exploit(exploit_dir, target_team, config, signer=None):
     target_pubkey = teams[target_team]['pub_key_id']
 
     # Zip the directory
-    tmp_path = "/tmp/gitctf_%s" % random_string(6)
+    tmp_path = f"/tmp/gitctf_{random_string(6)}"
     shutil.make_archive(tmp_path, "zip", exploit_dir)
     zip_file = tmp_path + ".zip" # make_archive() automatically appends suffix.
 
     # Encrypt the zipped file
 
-    encrypt_cmd = "gpg -o %s " % out_file
+    encrypt_cmd = f"gpg -o {out_file} "
     if signer is not None:
         signer_pubkey = config["individual"][signer]['pub_key_id']
-        encrypt_cmd += "--default-key %s --sign " % signer_pubkey
-    encrypt_cmd += "-e -r %s -r %s " % (instructor_pubkey, target_pubkey)
-    encrypt_cmd += "--armor %s" % zip_file
+        encrypt_cmd += f"--default-key {signer_pubkey} --sign "
+    encrypt_cmd += f"-e -r {target_pubkey} -r {instructor_pubkey} "
+    encrypt_cmd += f"--armor {zip_file}"
     _, err, ret = run_command(encrypt_cmd, None)
     rmfile(zip_file) # Clean up zip file.
     if ret != 0:

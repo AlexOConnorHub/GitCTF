@@ -29,7 +29,7 @@ from ctf_utils import base_dir, rmdir, docker_cleanup, load_config
 
 def setup(repo_name, container_name, service_port, host_port):
     script = os.path.join(base_dir(), "setup_service.sh")
-    setup_cmd = '%s "%s" %d %d' % (script, container_name, service_port, host_port)
+    setup_cmd = f'{script} "{container_name}" {service_port} {host_port}'
     _, err, e = run_command(setup_cmd, repo_name)
     if e != 0:
         print(f"[*] Failed to launch {container_name}")
@@ -37,7 +37,7 @@ def setup(repo_name, container_name, service_port, host_port):
         sys.exit()
 
 def check_liveness(container_name, host_port):
-    _, _, e = run_command('nc -z 127.0.0.1 %d' % host_port, None)
+    _, _, e = run_command(f'nc -z 127.0.0.1 {host_port}', None)
     if e != 0:
             print(f"[*] {container_name} service is not running.")
     else:
@@ -47,7 +47,7 @@ def verify_service(team, branch, service_port, host_port, config_file):
     config = load_config(config_file)
     repo_owner = config['repo_owner']
     repo_name = config['teams'][team]['repo_name']
-    container_name = "%s-%s" % (repo_name, branch)
+    container_name = f"{repo_name}-{branch}"
     clone(repo_owner, repo_name)
     docker_cleanup(container_name)
     checkout(repo_name, branch)

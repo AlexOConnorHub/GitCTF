@@ -31,7 +31,7 @@ from crypto import decrypt_exploit
 
 def get_exploit_dir(dir, branch, config, team):
     # XXX current assumption: "exploit_bugN.zip.pgp"
-    exploit_path = "exploit_%s.zip.pgp" % branch
+    exploit_path = f"exploit_{branch}.zip.pgp"
     encrypted_exploit = os.path.join(dir, exploit_path)
     exploit_dir = decrypt_exploit(encrypted_exploit, config, team)
     if exploit_dir is None:

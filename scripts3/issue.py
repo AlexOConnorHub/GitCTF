@@ -29,14 +29,14 @@ from datetime import datetime, timedelta
 def create_label(repo_owner, repo_name, label_name, \
         color, desc, github):
 
-    query = '/repos/%s/%s/labels' % (repo_owner, repo_name)
+    query = f'/repos/{repo_owner}/{repo_name}/labels'
     issue = {'name': label_name, 'description': desc, 'color': color}
     # Add the label to the repository
     if github.post(query, json.dumps(issue)) is None:
         print(f'[*] Label already exists in {label_name}')
 
 def update_label(repo_owner, repo_name, issue_no, github, label):
-    query = '/repos/%s/%s/issues/%s' % (repo_owner, repo_name, issue_no)
+    query = f'/repos/{repo_owner}/{repo_name}/issues/{issue_no}'
     labels = [label]
     issue = {'labels': labels}
     r = github.patch(query, json.dumps(issue))
@@ -48,7 +48,7 @@ def update_label(repo_owner, repo_name, issue_no, github, label):
 
 def make_github_issue(repo_owner, repo_name, title, body, github):
     '''Create an issue on github.com using the given parameters.'''
-    query = '/repos/%s/%s/issues' % (repo_owner, repo_name)
+    query = f'/repos/{repo_owner}/{repo_name}/issues'
     issue = {'title': title, 'body': body}
     r = github.post(query, json.dumps(issue), 201)
     if r is None:
@@ -60,7 +60,7 @@ def make_github_issue(repo_owner, repo_name, title, body, github):
 
 def get_github_issue(repo_owner, repo_name, issue_no, github):
     '''Retrieve an issue on github.com using the given parameters.'''
-    query = '/repos/%s/%s/issues/%s' % (repo_owner, repo_name, issue_no)
+    query = f'/repos/{repo_owner}/{repo_name}/issues/{issue_no}'
     r = github.get(query)
     if r is None:
         print(f'Could not get Issue from {query}')
@@ -93,7 +93,7 @@ def submit_issue(title, encrypted_exploit, target_team, config, github):
     make_github_issue(repo_owner, repo_name, title, content, github)
 
 def is_closed(repo_owner, repo_name, issue_no, github):
-    query = '/repos/%s/%s/issues/%s' % (repo_owner, repo_name, issue_no)
+    query = f'/repos/{repo_owner}/{repo_name}/issues/{issue_no}'
     r = github.get(query)
     if r is None:
         print(f'Could not get Issue from {query}')
@@ -106,8 +106,7 @@ def is_closed(repo_owner, repo_name, issue_no, github):
             return True
 
 def create_comment(repo_owner, repo_name, issue_no, comment, github):
-    query = '/repos/%s/%s/issues/%s/comments' % \
-            (repo_owner, repo_name, issue_no)
+    query = f'/repos/{repo_owner}/{repo_name}/issues/{issue_no}/comments'
 
     issue = {'body': comment}
     r = github.post(query, json.dumps(issue), 201)
@@ -118,8 +117,7 @@ def create_comment(repo_owner, repo_name, issue_no, comment, github):
         print('[*] Successfully created comment')
 
 def close_issue(repo_owner, repo_name, issue_no, github):
-    query = '/repos/%s/%s/issues/%s' % \
-            (repo_owner, repo_name, issue_no)
+    query = f'/repos/{repo_owner}/{repo_name}/issues/{issue_no}'
 
     issue = {'state': 'closed'}
     r = github.patch(query, json.dumps(issue))

@@ -30,7 +30,7 @@ from issue import get_github_issue
 from crypto import decrypt_exploit
 from github import post, get, put, patch, poll
 
-def fetch(team, issue_no, config, token=None):
+def fetch(team, issue_no, config):
     repo_owner = config['repo_owner']
     repo_name = config['teams'][team]['repo_name']
 

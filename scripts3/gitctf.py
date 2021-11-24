@@ -76,10 +76,6 @@ def add_admin_conf(parser):
     parser.add_argument("--admin-conf", metavar="FILE", default=".config.json",
             help="specify the administrative config file (default: .config.json)")
 
-def add_token(parser, required):
-    parser.add_argument("--token", metavar="APITOKEN", required=required,
-                        help="specify the GitHub API token")
-
 def verify_service_main(prog, options):
     desc = 'verify service docker'
     parser = argparse.ArgumentParser(description=desc, prog=prog)
@@ -124,12 +120,10 @@ def submit_main(prog, options):
     add_exploit(parser)
     add_service_dir(parser)
     add_target(parser)
-    add_token(parser, False)
     add_conf(parser)
     add_branch(parser)
     args = parser.parse_args(options)
-    submit(args.exploit, args.service_dir, args.branch, args.target, args.conf,
-           args.token)
+    submit(args.exploit, args.service_dir, args.branch, args.target, args.conf)
 
 def fetch_main(prog, options):
     desc = 'fetch an exploit'
@@ -138,10 +132,9 @@ def fetch_main(prog, options):
                         help="specify the issue number")
     add_team(parser)
     add_conf(parser)
-    add_token(parser, False)
     args = parser.parse_args(options)
     config = load_config(args.conf)
-    fetch(args.team, args.issue, config, args.token)
+    fetch(args.team, args.issue, config)
 
 def verify_main(prog, options):
     if len(options) == 0:
@@ -164,34 +157,30 @@ def verify_main(prog, options):
 def score_main(prog, options):
     desc = 'show the current score'
     parser = argparse.ArgumentParser(description=desc, prog=prog)
-    add_token(parser, False)
     add_conf(parser)
     args = parser.parse_args(options)
-    show_score(args.token, args.conf)
+    show_score(args.conf)
 
 def hash_main(prog, options):
     desc = 'get latest hash of commit for each branch'
     parser = argparse.ArgumentParser(description=desc, prog=prog)
     add_conf(parser)
-    add_token(parser, False)
     args = parser.parse_args(options)
-    get_hash(args.conf, args.token)
+    get_hash(args.conf)
 
 def setup_main(prog, options):
     desc = 'setup CTF environment'
     parser = argparse.ArgumentParser(description=desc, prog=prog)
     add_admin_conf(parser)
-    add_token(parser, False)
     args = parser.parse_args(options)
-    setup_env(args.admin_conf, args.token)
+    setup_env(args.admin_conf)
 
 def eval_main(prog, options):
     desc = 'evaluate participants'
     parser = argparse.ArgumentParser(description=desc, prog=prog)
     add_conf(parser)
-    add_token(parser, True)
     args = parser.parse_args(options)
-    evaluate(args.conf, args.token)
+    evaluate(args.conf)
 
 def exec_service_main(prog, options):
     desc = 'execute a service'

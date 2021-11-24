@@ -30,7 +30,7 @@ from issue import submit_issue
 from ctf_utils import rmfile, load_config, prompt_checkout_warning
 from github import post, get, put, patch, poll
 
-def submit(exploit_dir, service_dir, branch, target, config_file, token=None):
+def submit(exploit_dir, service_dir, branch, target, config_file):
     config = load_config(config_file)
     timeout = config["exploit_timeout"]["exercise_phase"]
     prompt_checkout_warning(service_dir)

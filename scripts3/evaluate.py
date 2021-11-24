@@ -271,7 +271,7 @@ def start_eval(config):
     print('[*] Time is over!')
     return
 
-def evaluate(config_file, token):
+def evaluate(config_file):
     importlib.reload(sys)
     sys.setdefaultencoding('utf-8')
     config = load_config(config_file)

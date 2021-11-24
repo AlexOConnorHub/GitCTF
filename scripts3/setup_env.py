@@ -184,7 +184,7 @@ def remote_setup(repo_owner, scoreboard_name, problems):
                     problems[problem]['repo_name'])
         commit_and_push(repo_dir_path, f'Add problem: {prob_repo_name}')
 
-def setup_env(admin_config_file, token=None):
+def setup_env(admin_config_file):
     admin_config = load_config(admin_config_file)
     repo_owner = admin_config['repo_owner']
     scoreboard_name = admin_config['scoreboard_name']

@@ -56,7 +56,7 @@ def start_get_hash(config, config_file):
 
     return
 
-def get_hash(config_file, token):
+def get_hash(config_file):
     prompt_warning(f'File {config_file} will be changed.')
     config = load_config(config_file)
     return start_get_hash(config, config_file)

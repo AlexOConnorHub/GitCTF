@@ -116,7 +116,7 @@ def make_html(log, config):
     with open('score.html', 'w') as f:
         f.write(html)
 
-def show_score(token, config_file):
+def show_score(config_file):
     config = load_config(config_file)
     scoreboard_url = config['score_board']
     freq = float(config['round_frequency'])

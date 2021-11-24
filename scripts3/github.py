@@ -26,6 +26,7 @@ import json
 import requests
 import getpass
 import base64
+from command import run_command
 
 def decode_content(response):
     if response['encoding'] == 'base64':
@@ -53,42 +54,53 @@ def get_github_path(url):
     return (owner + '/' + repo_name) # We just call this `GitHub path`
 
 def result(r, expected_code):
-    if r.status_code == expected_code:
-        return json.loads(r.content)
+    status_code = int(r[9:12])
+    if status_code == expected_code:
+        final = json.loads(r.split("\n")[-1])
+        final['status_code'] = status_code
+        return final
     else:
-        print('[*] response content', r.content)
+        print('[*] response content', r)
         return None
 
+def process_data(data):
+    data = json.loads(data)
+    final = ""
+    for key in data:
+        final += f" -f {key}=\"{data[key]}\""
+    return final
 class Github():
     def __init__(self, username, token=None):
-        self.session = requests.Session()
-        if token is None:
-            print('Github ID: %s' % username)
-            password = getpass.getpass('Password: ')
-            self.session.auth = (username, password)
-        else:
-            self.session.headers['Authorization'] = 'token %s' % token
+        pass
 
     @property
     def url(self):
         return 'https://api.github.com'
 
     def post(self, query, data, expected_code=201):
-        return result(self.session.post(self.url + query, data), expected_code)
+        r, _, _ = run_command(f"gh api {query} -i {process_data(data)}", None)
+        r =  result(r, expected_code)
+        return r
 
     def get(self, query, expected_code=200):
-        return result(self.session.get(self.url + query), expected_code)
+        r, _, _ = run_command(f'gh api {query} -i', None)
+        return result(r, expected_code)
 
-    def put(self, query, data):
-        r = self.session.put(self.url + query, data = data)
-        return r.status_code == 205
+    def put(self, query, data, expected_code=200):
+        r, _, _ = run_command(f"gh api {query} -i {process_data(data)}", None)
+        r = result(r)
+        return r['status_code'] == expected_code
 
-    def patch(self, query, data):
-        r = self.session.patch(self.url + query, data = data)
-        return r.status_code == 205
+    def patch(self, query, data, expected_code=200):
+        r, _, _ = run_command(f"gh api {query} -i {process_data(data)}", None)
+        r = result(r)
+        return r['status_code'] == expected_code
 
     def poll(self, query):
-        r = self.session.get(self.url + query)
-        poll_interval = int(r.headers['X-Poll-Interval'])
-        response = result(r, 200)
+        r, _, _ = run_command(f'gh api {query} -i'), None
+        response =  result(r, 200)
+        poll_interval = -1
+        for row in r:
+            if (row.split(":")[0] == 'X-Poll-Interval'):
+                poll_interval = int(row.split(":")[1])
         return response, poll_interval

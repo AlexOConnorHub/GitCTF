@@ -29,9 +29,9 @@ from command import run_command
 from string import Template
 
 def create_remote_repo(repo_owner, repo_name, github, description = None):
-    query = '/orgs/%s/repos' % (repo_owner)
+    query = '/user/repos'
 
-    repo = {'name': repo_name, 'description': description}
+    repo = {'name': repo_name, 'description': description, 'private': True}
     r = github.post(query, json.dumps(repo), 201)
 
     print('[*] Creating %s remote repository' % (repo_name))

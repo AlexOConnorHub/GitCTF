@@ -30,11 +30,11 @@ def run_command(command, path) -> list:
     whole_output = ''
     while True:
         output = process.stdout.readline()
-        if output == '' and process.poll() is not None:
+        if output == b'' and process.poll() is not None:
             break
         if output:
-            print(output.strip())
-            whole_output = whole_output + str(output.strip()) + '\n'
+            print(output.decode('utf-8'))
+            whole_output = whole_output + output.decode('utf-8')
 
     error = process.communicate()[1]
     return whole_output, error, process.returncode

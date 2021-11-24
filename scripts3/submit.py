@@ -28,7 +28,7 @@ from verify_exploit import verify_exploit
 from crypto import encrypt_exploit
 from issue import submit_issue
 from ctf_utils import rmfile, load_config, prompt_checkout_warning
-from github import Github
+from github import post, get, put, patch, poll
 
 def submit(exploit_dir, service_dir, branch, target, config_file, token=None):
     config = load_config(config_file)
@@ -54,8 +54,7 @@ def submit(exploit_dir, service_dir, branch, target, config_file, token=None):
 
     # Submit an issue with the encrypted exploit
     issue_title = f"exploit-{verified_branch}"
-    github = Github(config["player"], token)
-    submit_issue(issue_title, encrypted_exploit, target, config, github)
+    submit_issue(issue_title, encrypted_exploit, target, config)
 
     # Clean up
     rmfile(encrypted_exploit)

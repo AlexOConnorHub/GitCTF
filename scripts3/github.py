@@ -69,38 +69,31 @@ def process_data(data):
     for key in data:
         final += f" -f {key}=\"{data[key]}\""
     return final
-class Github():
-    def __init__(self, username, token=None):
-        pass
 
-    @property
-    def url(self):
-        return 'https://api.github.com'
+def post(query, data, expected_code=201):
+    r, _, _ = run_command(f"gh api {query} -i {process_data(data)}", None)
+    r =  result(r, expected_code)
+    return r
 
-    def post(self, query, data, expected_code=201):
-        r, _, _ = run_command(f"gh api {query} -i {process_data(data)}", None)
-        r =  result(r, expected_code)
-        return r
+def get(query, expected_code=200):
+    r, _, _ = run_command(f'gh api {query} -i', None)
+    return result(r, expected_code)
 
-    def get(self, query, expected_code=200):
-        r, _, _ = run_command(f'gh api {query} -i', None)
-        return result(r, expected_code)
+def put(query, data, expected_code=200):
+    r, _, _ = run_command(f"gh api {query} -i {process_data(data)}", None)
+    r = result(r)
+    return r['status_code'] == expected_code
 
-    def put(self, query, data, expected_code=200):
-        r, _, _ = run_command(f"gh api {query} -i {process_data(data)}", None)
-        r = result(r)
-        return r['status_code'] == expected_code
+def patch(query, data, expected_code=200):
+    r, _, _ = run_command(f"gh api {query} -i {process_data(data)}", None)
+    r = result(r)
+    return r['status_code'] == expected_code
 
-    def patch(self, query, data, expected_code=200):
-        r, _, _ = run_command(f"gh api {query} -i {process_data(data)}", None)
-        r = result(r)
-        return r['status_code'] == expected_code
-
-    def poll(self, query):
-        r, _, _ = run_command(f'gh api {query} -i'), None
-        response =  result(r, 200)
-        poll_interval = -1
-        for row in r:
-            if (row.split(":")[0] == 'X-Poll-Interval'):
-                poll_interval = int(row.split(":")[1])
-        return response, poll_interval
+def poll(query):
+    r, _, _ = run_command(f'gh api {query} -i'), None
+    response =  result(r, 200)
+    poll_interval = -1
+    for row in r:
+        if (row.split(":")[0] == 'X-Poll-Interval'):
+            poll_interval = int(row.split(":")[1])
+    return response, poll_interval

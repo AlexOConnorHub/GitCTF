@@ -32,20 +32,20 @@ from issue import is_closed, create_comment, close_issue
 from issue import create_label, update_label, get_github_issue
 from command import run_command
 from ctf_utils import load_config, rmdir, rmfile, iso8601_to_timestamp, is_timeover
-from github import Github, get_github_path
+from github import post, get, put, patch, poll, get_github_path
 from ctf_git import clone, checkout, get_next_commit_hash
 from verify_issue import verify_issue
 import importlib
 
 msg_file = 'msg' # Temporarily store commit message
 
-def failure_action(repo_owner, repo_name, issue_no, comment, id, github):
+def failure_action(repo_owner, repo_name, issue_no, comment, id):
     create_label(repo_owner, repo_name, "failed", "000000", \
-            "Verification failed.", github)
-    update_label(repo_owner, repo_name, issue_no, github, "failed")
-    create_comment(repo_owner, repo_name, issue_no, comment, github)
-    close_issue(repo_owner, repo_name, issue_no, github)
-    mark_as_read(id, github)
+            "Verification failed.")
+    update_label(repo_owner, repo_name, issue_no, "failed")
+    create_comment(repo_owner, repo_name, issue_no, comment)
+    close_issue(repo_owner, repo_name, issue_no)
+    mark_as_read(id)
 
 def get_target_repos(config):
     repos = []
@@ -68,11 +68,11 @@ def get_issue_id(noti):
 def get_issue_gen_time(noti):
     return iso8601_to_timestamp(noti['updated_at'])
 
-def get_issues(target_repos, github):
+def get_issues(target_repos):
     issues = []
     query = '/notifications'
     try:
-        notifications, interval = github.poll(query)
+        notifications, interval = poll(query)
     except ConnectionError:
         return [], 60
     for noti in reversed(notifications):
@@ -83,9 +83,9 @@ def get_issues(target_repos, github):
             issues.append((noti['repository']['name'], num, id, gen_time))
     return issues, interval
 
-def mark_as_read(issue_id, github):
+def mark_as_read(issue_id):
     query = '/notifications/threads/' + issue_id
-    return github.patch(query, None)
+    return patch(query, None)
 
 def get_defender(config, target_repo):
     teams = config['teams']
@@ -164,8 +164,7 @@ def get_next_commit(last_commit, defender, branch, config):
 # XXX: Calling verify_issue() multiple times involves redundant process
 # internally. We may consider replacing this by calling fetch() once and then
 # calling verify_exploit() multiple times.
-def process_unintended(repo_name, num, config, gen_time, info, scoreboard, id,
-                        github, repo_owner):
+def process_unintended(repo_name, num, config, gen_time, info, scoreboard, id, repo_owner):
     unintended_pts = config['unintended_pts']
     target_commit = find_the_last_attack(scoreboard, gen_time, info)
 
@@ -183,8 +182,7 @@ def process_unintended(repo_name, num, config, gen_time, info, scoreboard, id,
                 break
 
             _, verified_commit, _, _ = \
-                verify_issue(info['defender'], repo_name, num, config, \
-                github, target_commit)
+                verify_issue(info['defender'], repo_name, num, config,  target_commit)
             info['bugkind'] = target_commit
             if verified_commit is None:
                 # Found a correct patch that defeats the exploit.
@@ -192,10 +190,10 @@ def process_unintended(repo_name, num, config, gen_time, info, scoreboard, id,
                 write_score(current_time, info, scoreboard, 0)
                 write_message(info, scoreboard, 0)
                 commit_and_push(scoreboard)
-                mark_as_read(id, github)
+                mark_as_read(id)
                 create_label(repo_owner, repo_name, "defended", "0000ff", \
-                        "Defended.", github)
-                update_label(repo_owner, repo_name, num, github, "defended")
+                        "Defended.")
+                update_label(repo_owner, repo_name, num, "defended")
                 break
             else:
                 # Exploit still works on this commit, update score and continue
@@ -203,18 +201,18 @@ def process_unintended(repo_name, num, config, gen_time, info, scoreboard, id,
                 write_message(info, scoreboard, unintended_pts)
                 commit_and_push(scoreboard)
 
-def process_issue(repo_name, num, id, config, gen_time, github, scoreboard):
+def process_issue(repo_name, num, id, config, gen_time, scoreboard):
     repo_owner = config['repo_owner']
-    if is_closed(repo_owner, repo_name, num, github):
-        mark_as_read(id, github)
+    if is_closed(repo_owner, repo_name, num):
+        mark_as_read(id)
         return
 
 
-    title, _, _, _ = get_github_issue(repo_owner, repo_name, num, github)
+    title, _, _, _ = get_github_issue(repo_owner, repo_name, num)
 
     create_label(repo_owner, repo_name, "eval", "DA0019", \
-            "Exploit is under review.", github)
-    update_label(repo_owner, repo_name, num, github, "eval")
+            "Exploit is under review.")
+    update_label(repo_owner, repo_name, num, "eval")
 
     defender = get_defender(config, repo_name)
     if defender is None:
@@ -223,29 +221,29 @@ def process_issue(repo_name, num, id, config, gen_time, github, scoreboard):
         return
 
     branch, commit, attacker, log = verify_issue(defender, repo_name, num, \
-            config, github)
+            config)
     if branch is None:
         log = "```\n" + log + "```"
         failure_action(repo_owner, repo_name, num, \
-                log + '\n\n[*] The exploit did not work.', id, github)
+                log + '\n\n[*] The exploit did not work.', id)
         return
 
     if config['individual'][attacker]['team'] == defender:
         failure_action(repo_owner, repo_name, num, \
                 f'[*] Self-attack is not allowed: {attacker}.', \
-                id, github)
+                id)
         return
 
     create_label(repo_owner, repo_name, "verified", "9466CB", \
-            "Successfully verified.", github)
-    update_label(repo_owner, repo_name, num, github, "verified")
+            "Successfully verified.")
+    update_label(repo_owner, repo_name, num, "verified")
 
     kind = commit
     info = {'attacker': attacker, 'defender': defender,
             'branch': branch, 'bugkind': kind}
     sync_scoreboard(scoreboard)
     process_unintended(repo_name, num, config, gen_time, info, scoreboard,
-            id, github, repo_owner)
+            id, repo_owner)
 
 def prepare_scoreboard_repo(url):
     path = get_github_path(url).split('/')
@@ -255,21 +253,21 @@ def prepare_scoreboard_repo(url):
     clone(scoreboard_owner, scoreboard_name, False, scoreboard_dir)
     return scoreboard_dir
 
-def start_eval(config, github):
+def start_eval(config):
     target_repos = get_target_repos(config)
     scoreboard = prepare_scoreboard_repo(config['score_board'])
     finalize = False
     while (not finalize):
         if (is_timeover(config)):
             finalize = True
-        issues, interval = get_issues(target_repos, github)
+        issues, interval = get_issues(target_repos)
         if not issues:
             print(f'[*] No news. Sleep for {str(interval)} seconds.')
             time.sleep(interval)
             continue
         print((f"[*] {str(len(issues))} new issues."))
         for repo, num, id, gen_time in issues:
-            process_issue(repo, num, id, config, gen_time, github, scoreboard)
+            process_issue(repo, num, id, config, gen_time, scoreboard)
     print('[*] Time is over!')
     return
 
@@ -277,6 +275,5 @@ def evaluate(config_file, token):
     importlib.reload(sys)
     sys.setdefaultencoding('utf-8')
     config = load_config(config_file)
-    github = Github(config['player'], token)
-    return start_eval(config, github)
+    return start_eval(config)
 

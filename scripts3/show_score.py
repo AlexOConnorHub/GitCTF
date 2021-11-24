@@ -27,7 +27,7 @@ import csv
 import json
 import time
 from ctf_utils import load_config, iso8601_to_timestamp, is_timeover
-from github import Github, decode_content, get_github_path
+from github import post, get, put, patch, poll, decode_content, get_github_path
 from io import StringIO
 from string import Template
 
@@ -124,11 +124,10 @@ def show_score(token, config_file):
     end_time = config['end_time']
     start_time = config['start_time']
     path = get_github_path(scoreboard_url)
-    g = Github(config['player'], token)
-    if g.get('/repos/' + path) is None:
+    if get('/repos/' + path) is None:
         print(f'[*] Failed to access the repository {path}')
         sys.exit()
-    r = g.get('/repos/' + path + '/contents/' + 'score.csv')
+    r = get('/repos/' + path + '/contents/' + 'score.csv')
     if r is None:
         print('[*] Failed to get the score file.')
         sys.exit()

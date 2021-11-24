@@ -24,15 +24,15 @@ import json
 import os
 from ctf_utils import load_config, prompt_rmdir_warning, rmdir, mkdir, base_dir
 from ctf_utils import copy
-from github import Github
+from github import post, get, put, patch, poll
 from command import run_command
 from string import Template
 
-def create_remote_repo(repo_owner, repo_name, github, description = None):
+def create_remote_repo(repo_owner, repo_name, description = None):
     query = '/user/repos'
 
     repo = {'name': repo_name, 'description': description, 'private': True}
-    r = github.post(query, json.dumps(repo), 201)
+    r = post(query, json.dumps(repo), 201)
 
     print(f'[*] Creating {repo_name} remote repository')
     if r is None:
@@ -167,11 +167,10 @@ def local_setup(repo_owner, scoreboard_name, problems):
 # About scoreboard and each problem:
 # 1. Create remote repositoy
 # 2. Commit and push
-def remote_setup(repo_owner, scoreboard_name, problems, github):
+def remote_setup(repo_owner, scoreboard_name, problems):
     print('[*] Start remote setup')
     # Setup remote scoreboard repo
-    result = create_remote_repo(repo_owner, scoreboard_name, github, \
-            'Scoreboard')
+    result = create_remote_repo(repo_owner, scoreboard_name, 'Scoreboard')
     if result:
         scoreboard_dir_path = os.path.join(repo_owner, scoreboard_name)
         commit_and_push(scoreboard_dir_path, 'Initialize scoreboard')
@@ -180,7 +179,7 @@ def remote_setup(repo_owner, scoreboard_name, problems, github):
     for problem in problems:
         prob_repo_name = problems[problem]['repo_name']
         description = problems[problem]['description']
-        create_remote_repo(repo_owner, prob_repo_name, github, description)
+        create_remote_repo(repo_owner, prob_repo_name, description)
         repo_dir_path = os.path.join(repo_owner, \
                     problems[problem]['repo_name'])
         commit_and_push(repo_dir_path, f'Add problem: {prob_repo_name}')
@@ -193,5 +192,4 @@ def setup_env(admin_config_file, token=None):
 
     local_setup(repo_owner, scoreboard_name, problems)
 
-    github = Github(admin_config['instructor'], token)
-    remote_setup(repo_owner, scoreboard_name, problems, github)
+    remote_setup(repo_owner, scoreboard_name, problems)

@@ -31,15 +31,15 @@ from ctf_git import get_latest_commit_hash
 from issue import get_github_issue
 from crypto import decrypt_exploit
 from verify_exploit import verify_exploit
-from github import Github
+from github import post, get, put, patch, poll
 from datetime import datetime
 from command import run_command
 
-def verify_issue(defender, repo_name, issue_no, config, github, target_commit=None):
+def verify_issue(defender, repo_name, issue_no, config, target_commit=None):
     timeout = config["exploit_timeout"]["exercise_phase"]
     repo_owner = config['repo_owner']
     title, submitter, create_time, content = \
-        get_github_issue(repo_owner, repo_name, issue_no, github)
+        get_github_issue(repo_owner, repo_name, issue_no)
 
     # Issue convention: "exploit-[branch_name]"
     target_branch = title[8:]
@@ -105,5 +105,4 @@ if __name__ == "__main__":
     issue_no = sys.argv[2]
     config_file = sys.argv[3]
     config = load_config(config_file)
-    github = Github(config["player"], None)
-    verify_issue(repo_name, issue_no, config, github)
+    verify_issue(repo_name, issue_no, config)

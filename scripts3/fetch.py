@@ -28,15 +28,14 @@ from ctf_utils import load_config, rmfile, mkdir, random_string, rmdir
 from ctf_utils import prompt_rmdir_warning
 from issue import get_github_issue
 from crypto import decrypt_exploit
-from github import Github
+from github import post, get, put, patch, poll
 
 def fetch(team, issue_no, config, token=None):
     repo_owner = config['repo_owner']
     repo_name = config['teams'][team]['repo_name']
-    github = Github(config["player"], token)
 
     _, submitter, create_time, content = \
-        get_github_issue(repo_owner, repo_name, issue_no, github)
+        get_github_issue(repo_owner, repo_name, issue_no)
 
     # Write the fetched issue content to temp file
     tmpfile = f"/tmp/gitctf_{random_string(6)}.issue"

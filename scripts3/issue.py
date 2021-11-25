@@ -24,6 +24,7 @@
 import json
 import sys
 from ctf_utils import iso8601_to_timestamp
+from command import run_command
 from datetime import datetime, timedelta
 from github import post, get, put, patch, poll
 
@@ -49,35 +50,34 @@ def update_label(repo_owner, repo_name, issue_no, label):
 
 def make_github_issue(repo_owner, repo_name, title, body):
     '''Create an issue on github.com using the given parameters.'''
-    query = f'/repos/{repo_owner}/{repo_name}/issues'
-    issue = {'title': title, 'body': body}
-    r = post(query, json.dumps(issue), 201)
-    if r is None:
+    body = body.replace("\'", "\\\'")
+    r, _, _ = run_command(f'gh -R {repo_owner}/{repo_name} issue \
+        create --body "{body}" --title {title}', None)
+    if (r == ""):
         print(f'[*] Could not create issue "{title}"')
-        print('[*] Response:', r)
         sys.exit(-1)
     else:
         print(f'[*] Successfully created issue "{title}"')
 
 def get_github_issue(repo_owner, repo_name, issue_no):
     '''Retrieve an issue on github.com using the given parameters.'''
-    query = f'/repos/{repo_owner}/{repo_name}/issues/{issue_no}'
-    r = get(query)
-    if r is None:
-        print(f'Could not get Issue from {query}')
-        print('Response:', r)
+    r, _, _ = run_command(f'gh -R {repo_owner}/{repo_name} issue \
+        view {issue_no} --json title,author,body,createdAt', None)
+    if r == "":
+        print(f'Could not get issue #{issue_no}')
         sys.exit(-1)
     else:
+        r = json.loads(r)
         print(f'[*] Successfully obtained issue #{issue_no}')
         print('[*] title:', r['title'])
-        print('[*] creater:', r['user']['login'])
-        dt = datetime.strptime(r['created_at'],'%Y-%m-%dT%H:%M:%SZ')
+        print('[*] creater:', r['author']['login'])
+        dt = datetime.strptime(r['createdAt'],'%Y-%m-%dT%H:%M:%SZ')
         # XXX do not assume it is in Korea, just use the current tz.
-        open_time = dt + timedelta(hours = 9) # Change to the Korea time
+        open_time = dt + timedelta(hours = -5) # Change to the Korea time
         print('[*] open time:', open_time)
         title = r['title']
-        submitter = r['user']['login']
-        create_time = r['created_at']
+        submitter = r['author']['login']
+        create_time = r['createdAt']
         content = r['body']
         create_timestamp = int(iso8601_to_timestamp(create_time))
         return (title, submitter, create_timestamp, content)
@@ -96,12 +96,11 @@ def submit_issue(title, encrypted_exploit, target_team, config):
 def is_closed(repo_owner, repo_name, issue_no):
     query = f'/repos/{repo_owner}/{repo_name}/issues/{issue_no}'
     r = get(query)
-    if r is None:
+    if (r == ""):
         print(f'Could not get Issue from {query}')
-        print('Response:', r)
         return True     # Not deal with the error case. Just regard as closed
     else:
-        if r['closed_at'] == None:
+        if r['closedAt'] == None:
             return False
         else:
             return True

@@ -20,26 +20,27 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-FROM i386/debian
+FROM $base_image
 # ======================================
 # Install your package here
-RUN sed -i 's/deb.debian.org/ftp.daumkakao.com/g' /etc/apt/sources.list
-RUN sed -i 's/archive.ubuntu.com/ftp.daumkakao.com/g' /etc/apt/sources.list
+# sample sed command to replace default mirrors with custom mirror
+# RUN sed -i 's/deb.debian.org/ftp.daumkakao.com/g' /etc/apt/sources.list
+$sed_cmd
 RUN apt-get update
 RUN apt-get upgrade
-RUN apt-get install -y xinetd
+RUN apt-get install -y $required_packages
 # ======================================
 
-COPY flag /var/ctf/flag
+RUN adduser $bin_name
+
+COPY flag $flag_dst_path
+COPY $bin_name $bin_dst_path
+
+RUN chown root:$bin_name $flag_dst_path $bin_dst_path
+RUN chmod 0550 $bin_dst_path
+RUN chmod 0440 $flag_dst_path
 
 # ======================================
-# Build and run your service here
-COPY vuln /service/vuln
-
-COPY service_conf /etc/xinetd.d/
-
-RUN echo "service_conf 4000/tcp" >> /etc/services
-
-RUN service xinetd restart
-ENTRYPOINT ["xinetd", "-dontfork"]
+# Execute service
+$exec_command
 # ======================================

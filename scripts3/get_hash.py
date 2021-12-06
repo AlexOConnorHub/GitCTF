@@ -29,7 +29,6 @@ from evaluate import get_target_repos
 from ctf_utils import prompt_warning, load_config, rmdir
 from ctf_git import clone, list_branches, checkout
 from ctf_git import get_latest_commit_hash
-from github import post, get, put, patch, poll
 
 
 def start_get_hash(config, config_file):

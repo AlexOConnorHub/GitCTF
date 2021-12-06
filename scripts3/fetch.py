@@ -28,7 +28,6 @@ from ctf_utils import load_config, rmfile, mkdir, random_string, rmdir
 from ctf_utils import prompt_rmdir_warning
 from issue import get_github_issue
 from crypto import decrypt_exploit
-from github import post, get, put, patch, poll
 
 def fetch(team, issue_no, config):
     repo_owner = config['repo_owner']

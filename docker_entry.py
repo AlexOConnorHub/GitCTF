@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 ###############################################################################
 # Git-based CTF
 ###############################################################################
@@ -20,26 +21,29 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-FROM $base_image
-# ======================================
-# Install your package here
-RUN sed -i 's/deb.debian.org/ftp.daumkakao.com/g' /etc/apt/sources.list
-RUN sed -i 's/archive.ubuntu.com/ftp.daumkakao.com/g' /etc/apt/sources.list
-RUN apt-get update
-RUN apt-get upgrade
-RUN apt-get install -y $required_packages
-# ======================================
+from sys import argv
+from os import system
+from os.path import exists
+from bottle import route, run, static_file
 
-RUN adduser $bin_name
+### FOR DOCKER SETUP
+if (not exists("/root/.gitconfig")):
+    system("git_setup.sh")
 
-COPY flag $flag_dst_path
-COPY $bin_name $bin_dst_path
+### FOR BOTTLE SERVER
 
-RUN chown root:$bin_name $flag_dst_path $bin_dst_path
-RUN chmod 0550 $bin_dst_path
-RUN chmod 0440 $flag_dst_path
+if (len(argv) > 1):
+    public_files = argv[1]
+else:
+    public_files = "web/"
 
-# ======================================
-# Execute service
-$exec_command
-# ======================================
+@route('/favicon.ico')
+def return_favicon():
+    return static_file('favicon.ico', root=public_files + 'images/') 
+
+@route('/')
+@route('/<file:path>')
+def hello(file='index.html'):
+    return static_file(file, root=public_files) 
+
+run(host='0.0.0.0', port=8080, debug=True) # Change to False

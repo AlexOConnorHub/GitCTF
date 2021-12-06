@@ -6,7 +6,7 @@ help`.
 
 ### Prerequisite
 
-Our tools assume that you have installed `GPG`, `Git`, `unzip`, `nc`, as well as
+Our tools assume that you have installed `GPG`, `Git`, `Github's CLI`, `unzip`, `nc`, as well as
 `python` on your system. Currently our tool relies on two external python
 libraries: `requests` and `python-dateutil`.
 

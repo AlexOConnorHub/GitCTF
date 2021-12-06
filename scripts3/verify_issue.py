@@ -31,7 +31,6 @@ from ctf_git import get_latest_commit_hash
 from issue import get_github_issue
 from crypto import decrypt_exploit
 from verify_exploit import verify_exploit
-from github import post, get, put, patch, poll
 from datetime import datetime
 from command import run_command
 

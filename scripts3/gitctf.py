@@ -69,12 +69,12 @@ def add_service_port(parser):
                         help="specify the service port number (default: 4000)")
 
 def add_conf(parser):
-    parser.add_argument("--conf", metavar="FILE", default="config.json",
-                        help="specify the config file (default: config.json)")
+    parser.add_argument("--conf", metavar="FILE", default="../configuration/config.json",
+                        help="specify the config file (default: ../configuration/config.json)")
 
 def add_admin_conf(parser):
-    parser.add_argument("--admin-conf", metavar="FILE", default=".config.json",
-            help="specify the administrative config file (default: .config.json)")
+    parser.add_argument("--admin-conf", metavar="FILE", default="../configuration/.config.json",
+            help="specify the administrative config file (default: ../configuration/.config.json)")
 
 def verify_service_main(prog, options):
     desc = 'verify service docker'

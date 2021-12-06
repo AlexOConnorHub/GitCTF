@@ -28,7 +28,6 @@ from verify_exploit import verify_exploit
 from crypto import encrypt_exploit
 from issue import submit_issue
 from ctf_utils import rmfile, load_config, prompt_checkout_warning
-from github import post, get, put, patch, poll
 
 def submit(exploit_dir, service_dir, branch, target, config_file):
     config = load_config(config_file)

@@ -55,4 +55,4 @@ COPY web/index.html /srv/gitctf
 COPY web/setup.html /srv/gitctf
 COPY web/manage.html /srv/gitctf
 
-ENTRYPOINT [ "/docker_entry.py", "/srv/gitctf/" ]
+ENTRYPOINT [ "/docker_entry.py" ]

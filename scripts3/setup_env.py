@@ -21,6 +21,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 import os
+from subprocess import run
 from ctf_utils import load_config, prompt_rmdir_warning, rmdir, mkdir, base_dir
 from ctf_utils import copy
 from command import run_command
@@ -46,10 +47,11 @@ def init_repo(dir_path):
         return False
     return True
 
-def create_local_repo(dir_path):
-    print(f'[*] Creating {dir_path} local repositoy.')
-    mkdir(dir_path)
-    return init_repo(dir_path)
+def create_local_repo(repo_name, repo_location):
+    print(f'[*] Creating {repo_name} local repositoy at {repo_location}.')
+    mkdir(repo_location)
+    run_command(f"gh repo create {repo_name} --confirm --private", repo_location)
+    return init_repo(repo_name)
 
 def commit_and_push(path, msg):
     _, _, r = run_command('git add -A .', path)
@@ -134,7 +136,7 @@ def create_dockerfile(problem_info, repo_dir_path, template_path, sed_cmd):
     with open(os.path.join(repo_dir_path, 'Dockerfile'), 'w') as f:
         f.write(dockerfile)
 
-def local_setup(repo_owner, scoreboard_name, problems, template_path, sed_cmd):
+def local_setup(repo_owner, scoreboard_name, problems, template_path, sed_cmd, repo_location):
     print('[*] Start local setup')
     # Create root directory for CTF env.
     prompt_rmdir_warning(repo_owner)
@@ -142,22 +144,21 @@ def local_setup(repo_owner, scoreboard_name, problems, template_path, sed_cmd):
     mkdir(repo_owner)
 
     # Setup local scoreboard repo
-    scoreboard_dir_path = os.path.join(repo_owner, scoreboard_name)
-    if create_local_repo(scoreboard_dir_path):
-        open(os.path.join(scoreboard_dir_path, 'score.csv'), 'w').close()
+    scoreboard_dir_path = os.path.join(repo_location, repo_owner)
+    if create_local_repo( scoreboard_name, repo_location):
+        open(os.path.join(scoreboard_dir_path, scoreboard_name, 'score.csv'), 'w').close()
 
     # Setup local problems repo
     for problem in problems:
         problem_info = problems[problem]
-        repo_dir_path = os.path.join(repo_owner, \
-                problem_info['repo_name'])
-        if create_local_repo(repo_dir_path):
+        repo_dir_path = os.path.join(repo_location, repo_owner)
+        if create_local_repo(problem_info['repo_name'], repo_dir_path):
             print('[*] Copy binary')
-            copy(problem_info['bin_src_path'], repo_dir_path)
+            copy(problem_info['bin_src_path'], os.path.join(repo_dir_path, problem_info['bin_src_path']))
             print('[*] Create flag file')
             create_flag(repo_dir_path)
             print('[*] Make Dockerfile')
-            create_dockerfile(problem_info, repo_dir_path, template_path, sed_cmd)
+            create_dockerfile(problem_info, os.path(repo_dir_path, problem_info['bin_src_path']), template_path, sed_cmd)
 
 # About scoreboard and each problem:
 # 1. Create remote repositoy
@@ -179,7 +180,7 @@ def remote_setup(repo_owner, scoreboard_name, problems):
         create_remote_repo(repo_owner, prob_repo_name, description, repo_dir_path)
         commit_and_push(repo_dir_path, f'Add problem: {prob_repo_name}')
 
-def setup_env(admin_config_file):
+def setup_env(admin_config_file, repo_location):
     admin_config = load_config(admin_config_file)
     repo_owner = admin_config['repo_owner']
     scoreboard_name = admin_config['scoreboard_name']
@@ -187,6 +188,6 @@ def setup_env(admin_config_file):
     template_path = admin_config['template_path']
     sed_cmd = admin_config['sed_cmd']
     
-    local_setup(repo_owner, scoreboard_name, problems, template_path, sed_cmd)
+    local_setup(repo_owner, scoreboard_name, problems, template_path, sed_cmd, repo_location)
 
     remote_setup(repo_owner, scoreboard_name, problems)

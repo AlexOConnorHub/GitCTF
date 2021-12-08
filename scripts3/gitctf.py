@@ -76,6 +76,10 @@ def add_admin_conf(parser):
     parser.add_argument("--admin-conf", metavar="FILE", default="../configuration/.config.json",
             help="specify the administrative config file (default: ../configuration/.config.json)")
 
+def add_repo_location(parser):
+    parser.add_argument("--repo_location", metavar="DIR", default="./",
+            help="specify the location for repos to be cloned to (default: ./)")
+
 def verify_service_main(prog, options):
     desc = 'verify service docker'
     parser = argparse.ArgumentParser(description=desc, prog=prog)
@@ -172,8 +176,9 @@ def setup_main(prog, options):
     desc = 'setup CTF environment'
     parser = argparse.ArgumentParser(description=desc, prog=prog)
     add_admin_conf(parser)
+    add_repo_location(parser)
     args = parser.parse_args(options)
-    setup_env(args.admin_conf)
+    setup_env(args.admin_conf, args.repo_location)
 
 def eval_main(prog, options):
     desc = 'evaluate participants'

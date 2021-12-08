@@ -1,16 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>Git CTF Admin Panel</title>
+        <title>Git CTF Setup</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, inital-scale=1">
         <link rel="stylesheet" href="/css/bootstrap.min.css">
         <link rel="stylesheet" href="/css/softsec.css">
         <script src="/js/jquery-2.1.1.min.js"></script>
         <script src="/js/bootstrap.min.js"></script>
-        <style>
-
-        </style>
+        <script>
+            function make_ctf() {
+                let github_login = $("#github-login")[0].value;
+                let base_image = $("#base-image")[0].value;
+                let num_of_teams = $("#number-of-teams")[0].value;
+                let port = $("#port-number")[0].value;
+                let service_name = $("#service-name")[0].value;
+                let req_packages = $("#packages")[0].value;
+                let sed_command = $("#sed-command")[0].value;
+                if (sed_command == "") {
+                    sed_command = "RUN echo Using default mirrors";
+                } else {
+                    sed_command = "RUN " + sed_command;
+                }
+                let jsonObject = {};
+                jsonObject.instructor = github_login;
+                jsonObject.repo_owner = github_login;
+                jsonObject.scoreboard_name = "scoreboard";
+                jsonObject.template_path =  "/usr/local/share/gitctf";
+                jsonObject.sed_cmd = sed_command;
+                jsonObject.problems = {};
+                for (let i = 1; i <= num_of_teams; i++) {
+                    jsonObject.problems['problem' + i] = {
+                        "base_image": base_image,
+                        "service_exe_type": service_name,
+                        "repo_name": "team" + i,
+                        "description": `team${i}'s service repositoy`,
+                        "bin_src_path": "/usr/local/share/vuln64",
+                        "bin_dst_path": "/service/vuln",
+                        "flag_dst_path": "/var/ctf/flag",
+                        "bin_args": "",
+                        "port": port,
+                        "required_packages": req_packages
+                    };
+                }
+                console.log(jsonObject);
+                $.post("/setup", JSON.stringify(jsonObject), function(result){
+                    if (confirm("Using this data, do you want to initalize the repositories?")) {
+                        $.post("/create", true);
+                    }
+                });
+            }
+        </script>
     </head>
     <body>
         <nav class="navbar navbar-inverse">
@@ -28,15 +68,63 @@
             </div>                
         </nav>
 
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-10 text-center about">
-                    This is the admin page for Git CTF. From here, you can setup a new Git CTF, or manage the existing one.
-                    To learn about what a CTF is, you can check out <a href="https://en.wikipedia.org/wiki/Capture_the_flag_(cybersecurity)">this Wikipedia article.</a>
-                    To setup a new CTF, you can go to <a href="/setup.html">this page</a>.
-                    To manage the current CTF, you can go to <a href="/manage.html">this page</a>.
+        <div class="container"> 
+            <form class="form-horizontal" action="" id="make-ctf-form" default>
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="email">Github Username:</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="github-login" required="required" placeholder="Your username">
+                    </div>
                 </div>
-            </div>
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="email">Base Docker Image:</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="base-image" required="required" placeholder="ubuntu:latest">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="pwd">Number of Teams:</label>
+                    <div class="col-sm-10">
+                        <input type="number" class="form-control" id="number-of-teams" required="required" placeholder="4">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="pwd">Port Number:</label>
+                    <div class="col-sm-10">
+                        <input type="number" class="form-control" id="port-number" required="required" placeholder="2000">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="pwd">Type of service:</label>
+                    <div class="col-sm-10">
+                        <select id="service-name" class="form-control" required="required">
+                            <option value="xinitd">xinitd</option>
+                            <option value="stand-alone">stand-alone</option>
+                        </select>                  
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="pwd">Required Packages:</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="packages" required="required" placeholder="sudo">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="pwd">Custom Mirror sh command:</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="sed-command" placeholder="sed -i 's/deb.debian.org/ftp.yourmirror.com/g' /etc/apt/sources.list">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                        <button type="submit" class="btn btn-default" onclick="make_ctf()">Submit</button>
+                    </div>
+                </div>
+          </form> 
         </div>
     </body>
+
+    <script>
+        document.getElementById('make-ctf-form').addEventListener("submit", function(event){event.preventDefault();}, true);
+    </script>
 </html>

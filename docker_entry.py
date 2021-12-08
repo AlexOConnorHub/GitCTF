@@ -24,26 +24,37 @@
 from sys import argv
 from os import system
 from os.path import exists
-from bottle import route, run, static_file
+from bottle import route, post, request, run, static_file
+from json import dumps, loads
 
-### FOR DOCKER SETUP
+### FOR DOCKER ENVIRONMENT SETUP
 if (not exists("/root/.gitconfig")):
     system("git_setup.sh")
 
 ### FOR BOTTLE SERVER
 
-if (len(argv) > 1):
-    public_files = argv[1]
-else:
-    public_files = "web/"
+public_files = "/srv/gitctf/"
 
 @route('/favicon.ico')
 def return_favicon():
-    return static_file('favicon.ico', root=public_files + 'images/') 
+    return static_file('favicon.ico', root=public_files + 'images/')
 
 @route('/')
 @route('/<file:path>')
 def hello(file='index.html'):
-    return static_file(file, root=public_files) 
+    return static_file(file, root=public_files)
 
-run(host='0.0.0.0', port=8080, debug=True) # Change to False
+@post('/setup')
+def setup_config():
+    data = str(loads(request.body.read()))
+    print(data)
+    system(f"mv /etc/gitctf/.config.json /etc/gitctf/.config.json.bk")
+    system(f"echo '{dumps(data)}' | jq > /etc/gitctf/.config.json")
+
+@post('/create')
+def setup_config():
+    if not request.body.read():
+       return False
+    system(f"gitctf.py setup --admin-conf /etc/gitctf/.config.json")
+
+run(host='0.0.0.0', port=80, debug=True) # Change to False

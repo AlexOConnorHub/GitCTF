@@ -51,20 +51,19 @@ def init_repo(dir_path):
 def create_local_repo(repo_name, repo_location):
     print(f'[*] Creating {repo_name} local repositoy at {os.path.join(repo_location, repo_name)}.')
     mkdir(os.path.join(repo_location, repo_name))
-    run_command(f"pwd", os.path.join(repo_location, repo_name))
-    run_command(f"gh repo create {repo_name} --private", repo_location)
+    run_command(f"gh repo create {repo_name} --private --confirm", repo_location)
     return True
 
 def commit_and_push(path, msg):
-    _, _, r = run_command('git add -A .', path)
+    _, _, r = run_command('git add .', path)
     if r != 0:
-        print(f'[*] Failed to git add -A . in {path}.')
+        print(f'[*] Failed to git add . in {path}.')
         return False
     _, _, r = run_command(f'git commit -m "{msg}"', path)
     if r != 0:
         print(f'[*] Failed to commit in {path}.')
         return False
-    _, _, r = run_command('git push -f -u origin master', path)
+    _, _, r = run_command('git push -f origin master', path)
     if r != 0:
         print(f'[*] Failed to push in {path}.')
         return False
@@ -89,8 +88,7 @@ def create_xinetd_config(problem_info, repo_dir_path, bin_name, template_path):
                                 bin_dst_path = bin_dst_path, \
                                 bin_args = bin_args, \
                                 port = port)
-
-    with open(os.path.join(repo_dir_path, service_conf_name), 'w') as f:
+    with open(os.path.join(repo_dir_path,  service_conf_name), 'w') as f:
         f.write(service_conf)
 
     return service_conf_name
@@ -151,40 +149,19 @@ def local_setup(repo_owner, scoreboard_name, problems, template_path, sed_cmd, r
         open(os.path.join(scoreboard_dir_path, scoreboard_name, 'score.csv'), 'w').close()
         commit_and_push(os.path.join(scoreboard_dir_path, scoreboard_name), 'Initialize scoreboard')
 
-    print("In problems")
     # Setup local problems repo
     for problem in problems:
-        print("In problems")
         problem_info = problems[problem]
         repo_dir_path = os.path.join(repo_location, repo_owner)
         if create_local_repo(problem_info['repo_name'], repo_dir_path):
+            repo_dir_path = os.path.join(repo_dir_path, problem_info['repo_name'])
             print('[*] Copy binary')
-            copy(problem_info['bin_src_path'], os.path.join(repo_dir_path, problem_info['bin_src_path']))
+            copy(problem_info['bin_src_path'], repo_dir_path)
             print('[*] Create flag file')
             create_flag(repo_dir_path)
             print('[*] Make Dockerfile')
-            create_dockerfile(problem_info, os.path.join(repo_dir_path, problem_info['bin_src_path']), template_path, sed_cmd)
-            commit_and_push(os.path.join(repo_dir_path, problem_info['bin_src_path']), f"Add problem: {problem_info['repo_name']}")
-
-# About scoreboard and each problem:
-# 1. Create remote repositoy
-# 2. Commit and push
-def remote_setup(repo_owner, scoreboard_name, problems):
-    print('[*] Start remote setup')
-    # Setup remote scoreboard repo
-    scoreboard_dir_path = os.path.join(repo_owner, scoreboard_name)
-    result = create_remote_repo(repo_owner, scoreboard_name, 'Scoreboard', scoreboard_dir_path)
-    if result:
-        commit_and_push(scoreboard_dir_path, 'Initialize scoreboard')
-
-    # Setup remote problems repo
-    for problem in problems:
-        prob_repo_name = problems[problem]['repo_name']
-        description = problems[problem]['description']
-        repo_dir_path = os.path.join(repo_owner, \
-                    problems[problem]['repo_name'])
-        create_remote_repo(repo_owner, prob_repo_name, description, repo_dir_path)
-        commit_and_push(repo_dir_path, f'Add problem: {prob_repo_name}')
+            create_dockerfile(problem_info, repo_dir_path, template_path, sed_cmd)
+            commit_and_push(repo_dir_path, f"Add problem: {problem_info['repo_name']}")
 
 def setup_env(admin_config_file, repo_location):
     admin_config = load_config(admin_config_file)
@@ -195,5 +172,3 @@ def setup_env(admin_config_file, repo_location):
     sed_cmd = admin_config['sed_cmd']
     
     local_setup(repo_owner, scoreboard_name, problems, template_path, sed_cmd, repo_location)
-
-    # remote_setup(repo_owner, scoreboard_name, problems)

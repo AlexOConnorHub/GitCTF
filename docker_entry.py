@@ -22,7 +22,7 @@
 #  limitations under the License.
 
 from sys import argv
-from os import system
+from os import system, makedirs
 from os.path import exists
 from bottle import route, post, request, run, static_file
 from json import dumps, loads
@@ -33,7 +33,7 @@ if (not exists("/root/.gitconfig")):
 
 ### FOR BOTTLE SERVER
 
-public_files = "/srv/gitctf/"
+public_files = "/srv/gitctf"
 
 @route('/favicon.ico')
 def return_favicon():
@@ -48,12 +48,12 @@ def hello(file='index.html'):
 def setup_config():
     data = str(loads(request.body.read()))
     system(f"mv /etc/gitctf/.config.json /etc/gitctf/.config.json.bk")
-    system(f"echo '{dumps(data)}' | jq > /etc/gitctf/.config.json")
+    encoded_json = dumps(data)[1:-1].replace("'", '"')
+    system(f" jq -n '{encoded_json}' > /etc/gitctf/.config.json")
 
 @post('/create')
 def setup_config():
-    if not request.body.read():
-       return False
-    system(f"gitctf.py setup --admin-conf /etc/gitctf/.config.json")
+    makedirs("/tmp/ctf")
+    system(f"gitctf.py setup --admin-conf /etc/gitctf/.config.json --repo_location /usr/local/share/")
 
 run(host='0.0.0.0', port=80, debug=True) # Change to False

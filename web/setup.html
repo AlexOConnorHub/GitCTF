@@ -13,7 +13,7 @@
                 let github_login = $("#github-login")[0].value;
                 let base_image = $("#base-image")[0].value;
                 let num_of_teams = $("#number-of-teams")[0].value;
-                let port = $("#port-number")[0].value;
+                let port = Number($("#port-number")[0].value);
                 let service_name = $("#service-name")[0].value;
                 let req_packages = $("#packages")[0].value;
                 let sed_command = $("#sed-command")[0].value;
@@ -34,7 +34,7 @@
                         "base_image": base_image,
                         "service_exe_type": service_name,
                         "repo_name": "team" + i,
-                        "description": `team${i}'s service repositoy`,
+                        "description": `team${i} service repositoy`,
                         "bin_src_path": "/usr/local/share/vuln64",
                         "bin_dst_path": "/service/vuln",
                         "flag_dst_path": "/var/ctf/flag",

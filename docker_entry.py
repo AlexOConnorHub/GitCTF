@@ -47,7 +47,6 @@ def hello(file='index.html'):
 @post('/setup')
 def setup_config():
     data = str(loads(request.body.read()))
-    print(data)
     system(f"mv /etc/gitctf/.config.json /etc/gitctf/.config.json.bk")
     system(f"echo '{dumps(data)}' | jq > /etc/gitctf/.config.json")
 

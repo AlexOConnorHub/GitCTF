@@ -29,7 +29,8 @@ from string import Template
 
 def create_remote_repo(repo_owner, repo_name, description = None, path = None):
     print(f'[*] Creating {repo_name} remote repository')
-    r, _, _ = run_command(f"gh repo create {repo_name} --confirm --private --description \"{description}\"", os.path.join(path, ".."))
+    mkdir()
+    r, _, _ = run_command(f"gh repo create {repo_name} --private --description \"{description}\"", os.path.join(path, ".."))
     if r is None:
         print(f'[*] Failed to create remote repository "{repo_name}".')
         print('[*] Response:', r)
@@ -48,10 +49,11 @@ def init_repo(dir_path):
     return True
 
 def create_local_repo(repo_name, repo_location):
-    print(f'[*] Creating {repo_name} local repositoy at {repo_location}.')
-    mkdir(repo_location)
-    run_command(f"gh repo create {repo_name} --confirm --private", repo_location)
-    return init_repo(repo_name)
+    print(f'[*] Creating {repo_name} local repositoy at {os.path.join(repo_location, repo_name)}.')
+    mkdir(os.path.join(repo_location, repo_name))
+    run_command(f"pwd", os.path.join(repo_location, repo_name))
+    run_command(f"gh repo create {repo_name} --private", repo_location)
+    return True
 
 def commit_and_push(path, msg):
     _, _, r = run_command('git add -A .', path)
@@ -139,17 +141,20 @@ def create_dockerfile(problem_info, repo_dir_path, template_path, sed_cmd):
 def local_setup(repo_owner, scoreboard_name, problems, template_path, sed_cmd, repo_location):
     print('[*] Start local setup')
     # Create root directory for CTF env.
-    prompt_rmdir_warning(repo_owner)
-    rmdir(repo_owner)
-    mkdir(repo_owner)
+    prompt_rmdir_warning(os.path.join(repo_location, repo_owner))
+    rmdir(os.path.join(repo_location, repo_owner))
+    mkdir(os.path.join(repo_location, repo_owner))
 
     # Setup local scoreboard repo
     scoreboard_dir_path = os.path.join(repo_location, repo_owner)
-    if create_local_repo( scoreboard_name, repo_location):
+    if create_local_repo( scoreboard_name, scoreboard_dir_path):
         open(os.path.join(scoreboard_dir_path, scoreboard_name, 'score.csv'), 'w').close()
+        commit_and_push(os.path.join(scoreboard_dir_path, scoreboard_name), 'Initialize scoreboard')
 
+    print("In problems")
     # Setup local problems repo
     for problem in problems:
+        print("In problems")
         problem_info = problems[problem]
         repo_dir_path = os.path.join(repo_location, repo_owner)
         if create_local_repo(problem_info['repo_name'], repo_dir_path):
@@ -158,7 +163,8 @@ def local_setup(repo_owner, scoreboard_name, problems, template_path, sed_cmd, r
             print('[*] Create flag file')
             create_flag(repo_dir_path)
             print('[*] Make Dockerfile')
-            create_dockerfile(problem_info, os.path(repo_dir_path, problem_info['bin_src_path']), template_path, sed_cmd)
+            create_dockerfile(problem_info, os.path.join(repo_dir_path, problem_info['bin_src_path']), template_path, sed_cmd)
+            commit_and_push(os.path.join(repo_dir_path, problem_info['bin_src_path']), f"Add problem: {problem_info['repo_name']}")
 
 # About scoreboard and each problem:
 # 1. Create remote repositoy
@@ -190,4 +196,4 @@ def setup_env(admin_config_file, repo_location):
     
     local_setup(repo_owner, scoreboard_name, problems, template_path, sed_cmd, repo_location)
 
-    remote_setup(repo_owner, scoreboard_name, problems)
+    # remote_setup(repo_owner, scoreboard_name, problems)

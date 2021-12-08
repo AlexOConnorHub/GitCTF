@@ -1,0 +1,11 @@
+service vuln64_service_conf
+{
+    flags = REUSE
+    socket_type = stream
+    wait = no
+    user = vuln64
+    server = /service/vuln
+    server_args = 
+    disable = no
+    port = 2000
+}

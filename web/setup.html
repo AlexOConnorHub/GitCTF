@@ -23,8 +23,6 @@
                     sed_command = "RUN " + sed_command;
                 }
                 let jsonObject = {};
-                jsonObject.instructor = github_login;
-                jsonObject.repo_owner = github_login;
                 jsonObject.scoreboard_name = "scoreboard";
                 jsonObject.template_path =  "/usr/local/share/gitctf";
                 jsonObject.sed_cmd = sed_command;
@@ -70,12 +68,6 @@
 
         <div class="container"> 
             <form class="form-horizontal" action="" id="make-ctf-form" default>
-                <div class="form-group">
-                    <label class="control-label col-sm-2" for="email">Github Username:</label>
-                    <div class="col-sm-10">
-                        <input type="text" class="form-control" id="github-login" required="required" placeholder="Your username">
-                    </div>
-                </div>
                 <div class="form-group">
                     <label class="control-label col-sm-2" for="email">Base Docker Image:</label>
                     <div class="col-sm-10">

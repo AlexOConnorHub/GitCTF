@@ -21,8 +21,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from sys import argv
-from os import system, makedirs
+from os import system, makedirs, popen
 from os.path import exists
 from bottle import route, post, request, run, static_file
 from json import dumps, loads
@@ -48,6 +47,10 @@ def hello(file='index.html'):
 def setup_config():
     data = str(loads(request.body.read()))
     system(f"mv /etc/gitctf/.config.json /etc/gitctf/.config.json.bk")
+    data = loads(data)
+    owner = popen("gh api /user | jq .login").read()
+    data['instructor'] = owner[1:-1]
+    data['repo_owner'] = owner[1:-1]
     encoded_json = dumps(data)[1:-1].replace("'", '"')
     system(f" jq -n '{encoded_json}' > /etc/gitctf/.config.json")
 

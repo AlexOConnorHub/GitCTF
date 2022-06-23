@@ -36,7 +36,7 @@ public_files = "/srv/gitctf"
 
 @route('/favicon.ico')
 def return_favicon():
-    return static_file('favicon.ico', root=public_files + 'images/')
+    return static_file('/images/favicon.ico', root=public_files)
 
 @route('/')
 @route('/<file:path>')
@@ -59,4 +59,4 @@ def setup_config():
     makedirs("/tmp/ctf")
     system(f"gitctf.py setup --admin-conf /etc/gitctf/.config.json --repo_location /usr/local/share/")
 
-run(host='0.0.0.0', port=80, debug=True) # Change to False
+run(host='0.0.0.0', port=80, debug=True) # TODO: Change to False

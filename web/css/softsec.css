@@ -2,14 +2,14 @@
  * Style File for Sang Kil Cha's homepage
  *
  * In courtesy of my wife, Yeon Yim (http://yeonyim.com)
- * Last modification: 2015-10-06
+ * Last modification: 2022-23-06
  */
 
 html {padding:0; text-align:left;}
 
-body {background:#333333; color: #336699; font-family:'Open Sans', sans-serif; font-size:16px;}
+body {background:#333333; color: #c8ded7; font-family:'Open Sans', sans-serif; font-size:16px;}
 
-a {color:#336699;}
+/* a {color:#6c849c;} */
 a, a:hover, a:focus, a:active {text-decoration:none; outline:none;}
 a:hover, a:focus, a:active {color:#6699cc;}
 
@@ -68,4 +68,16 @@ a:hover, a:focus, a:active {color:#6699cc;}
     -webkit-transition:1s;
     -moz-transition:1s;
     transition:1s;
+}
+
+.btn {
+    border-radius:17px;
+    padding:10px;
+    margin-right:25px;
+    margin-top:15px;
+    margin-bottom:15px;
+}
+
+.fa-flag {
+    color: red;
 }

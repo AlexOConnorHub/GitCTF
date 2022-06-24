@@ -21,12 +21,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-username=$(gh api /user | jq .login)
-git config --global user.name $username
-git config --global user.email $(gh api /user/emails | jq .[1].email)
+git config --global user.name $(gh api /user -q .login)
+git config --global user.email $(gh api /user/emails -q .[1].email)
 git config --global credential.helper store
-echo https://$(gh api /user | jq .id):$GH_TOKEN@github.com > /root/.git-credentials
-
-jq '.instructor = $username' /etc/gitctf/.config.json > /tmp/conf.json.tmp && mv /tmp/conf.json.tmp /etc/gitctf/.config.json 
-jq '.repo_owner = $username' /etc/gitctf/.config.json > /tmp/conf.json.tmp && mv /tmp/conf.json.tmp /etc/gitctf/.config.json 
-
+echo https://$(gh api /user -q .id):$GH_TOKEN@github.com > /root/.git-credentials

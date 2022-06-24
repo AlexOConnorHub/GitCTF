@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 ###############################################################################
 # Git-based CTF
 ###############################################################################
@@ -26,7 +26,7 @@ import sys
 from ctf_utils import iso8601_to_timestamp
 from command import run_command
 from datetime import datetime, timedelta
-from github import post, get, put, patch, poll
+from github import request
 
 def create_label(repo_owner, repo_name, label_name, \
         color, desc):
@@ -34,14 +34,14 @@ def create_label(repo_owner, repo_name, label_name, \
     query = f'/repos/{repo_owner}/{repo_name}/labels'
     issue = {'name': label_name, 'description': desc, 'color': color}
     # Add the label to the repository
-    if post(query, json.dumps(issue)) is None:
+    if request(query, json.dumps(issue)) is None:
         print(f'[*] Label already exists in {label_name}')
 
 def update_label(repo_owner, repo_name, issue_no, label):
     query = f'/repos/{repo_owner}/{repo_name}/issues/{issue_no}'
     labels = [label]
     issue = {'labels': labels}
-    r = patch(query, json.dumps(issue))
+    r = request(query, json.dumps(issue))
     if r is None:
         print(f'[*] Could not create comment in "{repo_name}/{issue_no}"')
     else:
@@ -95,7 +95,7 @@ def submit_issue(title, encrypted_exploit, target_team, config):
 
 def is_closed(repo_owner, repo_name, issue_no):
     query = f'/repos/{repo_owner}/{repo_name}/issues/{issue_no}'
-    r = get(query)
+    r = request(query)
     if (r == ""):
         print(f'Could not get Issue from {query}')
         return True     # Not deal with the error case. Just regard as closed
@@ -109,7 +109,7 @@ def create_comment(repo_owner, repo_name, issue_no, comment):
     query = f'/repos/{repo_owner}/{repo_name}/issues/{issue_no}/comments'
 
     issue = {'body': comment}
-    r = post(query, json.dumps(issue), 201)
+    r = request(query, json.dumps(issue), 201)
     if r is None:
         print(f'[*] Could not create comment in "{repo_name}/{issue_no}"' )
         print(r)
@@ -120,7 +120,7 @@ def close_issue(repo_owner, repo_name, issue_no):
     query = f'/repos/{repo_owner}/{repo_name}/issues/{issue_no}'
 
     issue = {'state': 'closed'}
-    r = patch(query, json.dumps(issue))
+    r = request(query, json.dumps(issue))
     if r is None:
         print(f'[*] Could not close "{repo_name}/{issue_no}"')
     else:

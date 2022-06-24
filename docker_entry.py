@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 ###############################################################################
 # Git-based CTF
 ###############################################################################
@@ -21,10 +21,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from os import system, makedirs, popen
+from os import system, popen
 from os.path import exists
-from bottle import route, post, request, run, static_file
-from json import dumps, loads
+from bottle import redirect, request, run, static_file, Bottle
+from json import dumps
 
 ### FOR DOCKER ENVIRONMENT SETUP
 if (not exists("/root/.gitconfig")):
@@ -32,31 +32,53 @@ if (not exists("/root/.gitconfig")):
 
 ### FOR BOTTLE SERVER
 
+app = Bottle()
+
 public_files = "/srv/gitctf"
 
-@route('/favicon.ico')
+@app.route('/favicon.ico')
 def return_favicon():
     return static_file('/images/favicon.ico', root=public_files)
 
-@route('/')
-@route('/<file:path>')
+@app.route('/setup-form', method='POST')
+def setup_config():
+    # get all the data from the bottle form into "data"
+    data = {}
+    print(request.forms)
+    
+    # data = loads(request.forms)
+    data["scoreboard_name"] = f"{request.forms['org-name']}.github.io"
+    data['repo_owner'] = request.forms['org-name']
+    data["template_path"] = "/usr/local/share/gitctf"
+    data['start_time'] = f"{request.forms['start-date']}T{request.forms['start-time']}:00{request.forms['timezone-offset']}"
+    data['end_time'] = f"{request.forms['end-date']}T{request.forms['end-time']}:00{request.forms['timezone-offset']}"
+    data['number_of_bugs'] = request.forms['number-of-bugs']
+    owner = popen("gh api /user -q .login").read()[:-1]
+    data['instructor'] = owner
+    data['sed_cmd'] = request.forms['sed-cmd']
+    data["problems"] = {}
+    for x in range(int(request.forms["number-of-teams"])):
+        data["problems"][f"problem-{x}"] = {
+            "base_image": request.forms["base-image"],
+            "service_exe_type": request.forms["service-name"],
+            "repo_name": f"team-{x}",
+            "description": f"team-{x} service repositoy",
+            "bin_src_path": "/usr/local/share/vuln64",
+            "bin_dst_path": "/service/vuln",
+            "flag_dst_path": "/var/ctf/flag",
+            "bin_args": request.forms["bin-args"],
+            "port": request.forms["port-number"],
+            "required_packages": request.forms["packages"]
+        }
+    encoded_json = dumps(data, indent=4)
+    system(f"mv /etc/gitctf/.config.json /etc/gitctf/.config.json.bk")
+    system(f"echo '{encoded_json}' > /etc/gitctf/.config.json")
+    system(f"gitctf.py setup --admin-conf /etc/gitctf/.config.json --repo_location /usr/local/share/")
+    return redirect('/manage.html')
+
+@app.route('/')
+@app.route('/<file:path>')
 def hello(file='index.html'):
     return static_file(file, root=public_files)
 
-@post('/setup')
-def setup_config():
-    data = str(loads(request.body.read()))
-    system(f"mv /etc/gitctf/.config.json /etc/gitctf/.config.json.bk")
-    data = loads(data)
-    owner = popen("gh api /user | jq .login").read()
-    data['instructor'] = owner[1:-1]
-    data['repo_owner'] = owner[1:-1]
-    encoded_json = dumps(data)[1:-1].replace("'", '"')
-    system(f" jq -n '{encoded_json}' > /etc/gitctf/.config.json")
-
-@post('/create')
-def setup_config():
-    makedirs("/tmp/ctf")
-    system(f"gitctf.py setup --admin-conf /etc/gitctf/.config.json --repo_location /usr/local/share/")
-
-run(host='0.0.0.0', port=80, debug=True) # TODO: Change to False
+run(app, host='0.0.0.0', port=80, debug=True) # TODO: Change to False

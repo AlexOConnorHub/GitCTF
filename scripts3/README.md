@@ -8,7 +8,7 @@ help`.
 
 Our tools assume that you have installed `GPG`, `Git`, `Github's CLI`, `unzip`, `nc`, as well as
 `python` on your system. Currently our tool relies on two external python
-libraries: `requests` and `python-dateutil`.
+libraries: `docker` and `python-dateutil`.
 
 ### How to start?
 

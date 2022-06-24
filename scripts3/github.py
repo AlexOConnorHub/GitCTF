@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 ###############################################################################
 # Git-based CTF
 ###############################################################################
@@ -21,25 +21,20 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-import sys
-import json
-import requests
-import getpass
-import base64
+from sys import exit
+from json import loads
+from base64 import b64decode
 from command import run_command
 
 def decode_content(response):
     if response['encoding'] == 'base64':
-        return base64.b64decode(response['content'])
+        return b64decode(response['content'])
     else:
         print(f"[*] Unknown encoding {response['encoding']}")
-        sys.exit()
+        exit()
 
 def trim_dot_git(repo_name):
-    if repo_name.endswith('.git'):
-        return repo_name[:-4]
-    else:
-        return repo_name
+    return repo_name[:-4] if repo_name.endswith('.git') else repo_name
 
 def get_github_path(url):
     if url.startswith('https://github.com/'):
@@ -48,46 +43,30 @@ def get_github_path(url):
         grp = url[15:].split('/')
     else:
         print("[*] Failed to obtain github path")
-        sys.exit()
+        exit()
     owner = grp[0]
     repo_name = trim_dot_git(grp[1])
     return (owner + '/' + repo_name) # We just call this `GitHub path`
 
 def result(r, expected_code):
-    status_code = int(r[9:12])
-    if status_code == expected_code:
-        final = json.loads(r.split("\n")[-1])
-        final['status_code'] = status_code
-        return final
+    data = loads(r.split("\n")[-1])
+    data["status_code"] = int(r[9:12])
+    if expected_code == data['status_code']:
+        return data
     else:
         print('[*] response content', r)
         return None
 
 def process_data(data):
-    data = json.loads(data)
+    data = loads(data)
     final = ""
     for key in data:
         final += f" -f {key}=\"{data[key]}\""
     return final
 
-def post(query, data, expected_code=201):
+def request(query, data="{}", expected_code=200):
     r, _, _ = run_command(f"gh api {query} -i {process_data(data)}", None)
-    r =  result(r, expected_code)
-    return r
-
-def get(query, expected_code=200):
-    r, _, _ = run_command(f'gh api {query} -i', None)
     return result(r, expected_code)
-
-def put(query, data, expected_code=200):
-    r, _, _ = run_command(f"gh api {query} -i {process_data(data)}", None)
-    r = result(r)
-    return r['status_code'] == expected_code
-
-def patch(query, data, expected_code=200):
-    r, _, _ = run_command(f"gh api {query} -i {process_data(data)}", None)
-    r = result(r)
-    return r['status_code'] == expected_code
 
 def poll(query):
     r, _, _ = run_command(f'gh api {query} -i'), None

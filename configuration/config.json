@@ -59,14 +59,13 @@
         }
     },
     "individual": {
-        "GitHub ID of a participant":{
+        "GitHub ID of a participant 1":{
             "pub_key_id": "XXXXXXXX",
             "team": "team1"
         },
-        "GitHub ID of a participant":{
+        "GitHub ID of a participant 2":{
             "pub_key_id": "YYYYYYYY",
             "team": "team2"
         }
     }
 }
-

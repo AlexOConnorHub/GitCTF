@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 ###############################################################################
 # Git-based CTF
 ###############################################################################
@@ -32,7 +32,7 @@ from issue import is_closed, create_comment, close_issue
 from issue import create_label, update_label, get_github_issue
 from command import run_command
 from ctf_utils import load_config, rmdir, rmfile, iso8601_to_timestamp, is_timeover
-from github import post, get, put, patch, poll, get_github_path
+from github import request, poll, get_github_path
 from ctf_git import clone, checkout, get_next_commit_hash
 from verify_issue import verify_issue
 import importlib
@@ -85,7 +85,7 @@ def get_issues(target_repos):
 
 def mark_as_read(issue_id):
     query = '/notifications/threads/' + issue_id
-    return patch(query, None)
+    return request(query)
 
 def get_defender(config, target_repo):
     teams = config['teams']

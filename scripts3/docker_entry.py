@@ -24,14 +24,15 @@
 from bottle import request, run, static_file, Bottle, redirect
 from gitctf import main
 from json import dumps, loads
-from os import system, popen
+# from os import system, popen
 from os.path import exists, join
 from shutil import move
 from string import Template
+from subprocess import check_output
 
 ### FOR DOCKER ENVIRONMENT SETUP
 if (not exists("~/.gitconfig")):
-    system("git_setup.sh")
+    check_output(["git_setup.sh"])
 
 ### FOR BOTTLE SERVER
 
@@ -39,6 +40,7 @@ app = Bottle()
 
 server_root = "/srv/gitctf"
 public_files = "/srv/gitctf/public"
+data = {}
 with open(join(server_root, 'templates/header.html'), 'r') as f:
     header = f.read()
 with open(join(server_root, 'templates/navbar.html'), 'r') as f:
@@ -55,6 +57,10 @@ with open(join(server_root, 'pages/manage.html'), 'r') as f:
     manage = f.read()
 with open(join(server_root, 'pages/scoreboard.html'), 'r') as f:
     scoreboard = f.read()
+with open(join(server_root, 'pages/manage.js'), 'r') as f:
+    manage_js = f.read()
+with open(join(server_root, 'pages/setup.js'), 'r') as f:
+    setup_js = f.read()
 
 @app.route('/favicon.ico')
 def return_favicon():
@@ -62,9 +68,8 @@ def return_favicon():
 
 @app.route('/setup-form', method='POST')
 def setup_config():
-    # get all the data from the bottle form into "data"
-    print(request.forms.keys())
-    owner = popen("gh api /user -q .login").read()[:-1]
+    global data
+    owner = check_output(["gh", "api", "/user", "-q", ".login"]).decode()[:-1]
     data = {
         "repo_owner": request.forms['org-name'],
         "intended_pts": request.forms['intended-points'],
@@ -91,27 +96,31 @@ def setup_config():
                 "port": request.forms["port-number"],
                 "required_packages": request.forms["packages"],
             }
-        }
-    }
-    problems = ["problem-1"]
-    data["teams"] = {
-        "instructor": {
-            "repo_name": "-",
-            "pub_key_id": "PLEASE_SET_YOUR_PUBLIC_KEY_ID",
+        },
+        "teams": {
+            "instructor": {
+                "repo_name": "-",
+                "pub_key_id": "PLEASE_SUBMIT_PULL_REQUEST",
+            }
+        },
+        "individuals": {
+            owner: {
+                "team": "instructor",
+                "pub_key_id": "PLEASE_SUBMIT_PULL_REQUEST",
+            }
         }
     }
     for x in range(1, 1 + int(request.forms["number-of-teams"])):
         team_key = {
             "pub_key_id": "PLEASE_SUBMIT_PULL_REQUEST",
         }
-        for problem in problems:
+        for problem in data["problems"]:
             team_key[problem] = {
                 "repo_name": f"team-{x}-{problem}",
             }
             for y in range(int(request.forms["number-of-bugs"])):
                 team_key[problem][f"bug-{y}"] = "HASH_TO_BE_DETERMINED"
         data["teams"][f"team-{x}"] = team_key
-    data["individuals"] = {}
     individuals = loads(request.forms["individuals"])
     for name in individuals:
         if (individuals[name] != ""):
@@ -119,11 +128,10 @@ def setup_config():
                 "team": individuals[name],
                 "pub_key_id": "PLEASE_SUBMIT_PULL_REQUEST",
             }
-    encoded_json = dumps(data, indent=4)
     if (exists("/etc/gitctf/.config.json")):
         move("/etc/gitctf/.config.json", "/etc/gitctf/.config.json.bk")
     with open("/etc/gitctf/.config.json", "w") as f:
-        f.write(encoded_json)
+        f.write(dumps(data, indent=4))
     main("setup", ["--admin-conf", "/etc/gitctf/.config.json", "--repo_location", "/usr/local/share/"])
     return {"status": "success"}
 
@@ -135,20 +143,24 @@ def root(file):
 @app.route('/index')
 @app.route('/index.html')
 def index_page():
-    i = Template(index)
-    return i.substitute(header = header, navbar = navbar)
+    return Template(index).substitute(header = header, navbar = navbar)
 
 
 @app.route('/setup')
 @app.route('/setup.html')
 def setup_page():
-    with open(join(server_root, 'pages/setup.js'), 'r') as f:
-        setup_js = f.read()
+    config_script = ""
+    if (exists("/etc/gitctf/.config.json")):
+        config_script = """
+        if (!confirm('You already have a configuration. Do you want to overwrite it?')) { 
+            window.location.href = '/manage'; 
+        }"""
     i = Template(setup)
     c = Template(config_form)
     config = c.substitute(
         action = "",
         organization = "",
+        managing = "",
         startdate = "",
         starttime = "",
         enddate = "",
@@ -168,51 +180,47 @@ def setup_page():
         sed = "",
         args = "",
     )
-    return i.substitute(header = header, navbar = navbar, form = config, modal = user_modal, setup_script = setup_js)
+    return i.substitute(header = header, navbar = navbar, form = config, modal = user_modal, setup_script = setup_js + "\n" + config_script)
 
 @app.route('/manage')
 @app.route('/manage.html')
 def manage_page():
-    with open(join(server_root, 'pages/manage.js'), 'r') as f:
-        manage_js = f.read()
-    i = Template(manage)
-    c = Template(config_form)
+    global data
     if not exists("/etc/gitctf/.config.json"):
         redirect("/setup")
-    with open("/etc/gitctf/.config.json", "r") as f:
-        config_contents = loads(f.read())
+    i = Template(manage)
+    c = Template(config_form)
     config = c.substitute(
         action = "/manage-form",
-        organization = config_contents["repo_owner"],
-        startdate = config_contents["start_time"][:10],
-        starttime = config_contents["start_time"][11:16],
-        enddate = config_contents["end_time"][:10],
-        endtime = config_contents["end_time"][11:16],
-        intended = config_contents["intended_pts"],
-        unintended = config_contents["unintended_pts"],
-        round = config_contents["round_frequency"],
-        injection_timeout = config_contents["exploit_timeout"]["injection_phase"],
-        exersize_timeout = config_contents["exploit_timeout"]["exercise_phase"],
-        image = config_contents["problems"]["problem-1"]["base_image"],
-        number_of_teams = len(config_contents["teams"]) - 1,
-        port = config_contents["problems"]["problem-1"]["port"],
-        bugs = len(config_contents["teams"]["team-1"]) - 2,
-        stand_alone_selected = "selected" if config_contents["problems"]["problem-1"]["service_exe_type"] == "stand_alone" else "",
-        xinitd_selected = "selected" if config_contents["problems"]["problem-1"]["service_exe_type"] == "xinitd" else "",
-        packages = config_contents["problems"]["problem-1"]["required_packages"],
-        sed = config_contents["problems"]["problem-1"]["sed_cmd"],
-        args = config_contents["problems"]["problem-1"]["bin_args"],
+        organization = data["repo_owner"],
+        managing = "disabled",
+        startdate = data["start_time"][:10],
+        starttime = data["start_time"][11:16],
+        enddate = data["end_time"][:10],
+        endtime = data["end_time"][11:16],
+        intended = data["intended_pts"],
+        unintended = data["unintended_pts"],
+        round = data["round_frequency"],
+        injection_timeout = data["exploit_timeout"]["injection_phase"],
+        exersize_timeout = data["exploit_timeout"]["exercise_phase"],
+        image = data["problems"]["problem-1"]["base_image"],
+        number_of_teams = len(data["teams"]) - 1,
+        port = data["problems"]["problem-1"]["port"],
+        bugs = len(data["teams"]["team-1"]) - 2,
+        stand_alone_selected = "selected" if data["problems"]["problem-1"]["service_exe_type"] == "stand_alone" else "",
+        xinitd_selected = "selected" if data["problems"]["problem-1"]["service_exe_type"] == "xinitd" else "",
+        packages = data["problems"]["problem-1"]["required_packages"],
+        sed = data["problems"]["problem-1"]["sed_cmd"],
+        args = data["problems"]["problem-1"]["bin_args"],
     )
     return i.substitute(header = header, navbar = navbar, form = config, modal = user_modal, manage_script = manage_js)
 
 @app.route("/scoreboard")
 @app.route("/scoreboard.html")
 def scoreboard_page():
+    global data
     if not exists("/etc/gitctf/.config.json"):
         redirect("/setup")
-    with open("/etc/gitctf/.config.json", "r") as f:
-        config = loads(f.read())
-    s = Template(scoreboard)
-    return s.substitute(header = header, navbar = navbar, src = f"https://{config['repo_owner']}.github.io")
+    return Template(scoreboard).substitute(header = header, navbar = navbar, src = f"https://{data['repo_owner']}.github.io")
 
 run(app, host='0.0.0.0', port=80, debug=True) # TODO: Change to False

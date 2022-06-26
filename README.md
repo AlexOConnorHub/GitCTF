@@ -9,13 +9,16 @@ see how to configure and play Git-based CTF, see the followings.
 [paper](https://www.usenix.org/system/files/conference/ase18/ase18-paper_wi.pdf)
 at USENIX ASE, please refer to [ase](../../tree/ase) branch.**
 
-# Setup
-## Requirement
+In this repo, [AlexOConnorHub](https://www.github.com/AlexOConnorHub) has modified and updated this projet. This repo uses a [`Dockerfile`](./Dockerfile) to provide a webpage to manage this. It also is planning on using a Github Organization to host the CTF, which will make the cleanup afterwards easier, allowing those involved not wondering if they should keep a bunch of "team-x" repos around.
 
-1. Instructors should modify the [`config.json`](scripts/config.json) file to
+## Setup
+
+### Requirement
+
+1. Instructors should modify the [`config.json`](configuration/config.json) file to
    start with.
 
-1. Students need to obtain the [`config.json`](scripts/config.json) file
+1. Students need to obtain the [`config.json`](configuration/config.json) file
    prepared by the instructors in Step 1.
 
 1. Each team should prepare for a PGP public & private key pair in their own
@@ -30,24 +33,26 @@ Git-based CTF consists of three major steps: preparation, injection, and
 exercise. We provide a set of tools that help students play the CTF for each
 step.
 
-#### 1. Preparation Step
+## 1. Preparation Step
 
 In this step, you need to prepare a network service running in a Docker
 container. The final outcome of this step is a Git repository that contains a
 Dockerfile as well as source code for the service program. We provide several
 useful tools and scripts that help create such a service container.
 
-- We provide a template [Dockerfile](service_template), which can be used to
+- We provide a template [Dockerfile](templates/service_template/Dockerfile), which can be used to
   prepare a service application.
 
 - You can check whether a service repository is valid or not by running:
+
     ```bash
     ./gitctf.py verify service --team [TEAMNAME] --branch [BRANCH]
     ```
+  
   The above command checks whether the BRANCH branch of the repository follows
   the Git-based CTF convention.
 
-#### 2. Injection Step
+## 2. Injection Step
 
 You should inject vulnerabilities into the service application prepared in the
 previous step. You should also provide a working exploit for each injected
@@ -57,16 +62,18 @@ properly encrypted and signed. We provide several tools and scripts that help
 creating and verifying injected vulnerabilities and exploits.
 
 - You should write an exploit program/script using the template
-  [Dockerfile](exploit_template) we provided.
+  [Dockerfile](templates/exploit_template/Dockerfile) we provided.
 
 - You can verify your exploit against a service of a specific version (i.e.,
   specific branch). Assume that you have a local copy of a target service at
   SRVDIR, and your exploit at EXPDIR. You can then run the following command to
   test whether your exploit works within a SEC seconds against the BRANCH branch version of the
   service:
+
     ```bash
     ./gitctf.py verify exploit --exploit [EXPDIR] --service-dir [SRVDIR] --branch [BRANCH] --timeout [SEC]
     ```
+
   Also, if you add the ```--encrypt``` option, you can encrypt the exploit when
   it gets verified. You should upload (i.e. commit and push) this encrypted
   exploit, which will be named as ```exploit_bugN.zip.pgp``` in the root
@@ -79,7 +86,7 @@ creating and verifying injected vulnerabilities and exploits.
     ./gitctf.py verify injection --team [TEAMNAME]
     ```
 
-#### 3. Exercise Step
+## 3. Exercise Step
 
 In this step, you finally play the actual CTF game. To attack other opponents,
 you should create an issue that contains an encrypted attack described in the
@@ -91,6 +98,7 @@ previous step.
   target team's repository. Assuming that you have a local copy of a target
   service at SRVDIR, and your exploit at EXPDIR, the following command will
   perform these steps automatically.
+
     ```bash
     ./gitctf.py submit --exploit [EXPDIR] --service-dir [SRVDIR] --target [TEAMNAME]
     ```
@@ -105,9 +113,11 @@ previous step.
 - You can also check your score with our tool. Assuming that the scoreboard
   repository URL is properly given by `config.json` file, you can invoke the
   following command to see the current score.
+
     ```bash
     ./gitctf.py score
     ```
+
   Note that the points you see from the above command may slightly differ from
   the actual points computed at the instructor's machine, because this command
   relies on the system time to compute the unintended points.
@@ -125,11 +135,12 @@ Git-based CTF. The machine needs to be time-synchronized with an NTP server.
 - Click the `Watch` button in each team's service repository.
 
 - After the injection phase, you need to create a
-  [`config.json`](scripts/config.json) file, which describes the [basic
-  settings](#configuration) for a CTF.
+  [`config.json`](configuration/config.json) file, which describes the [basic
+  settings](##configuration) for a CTF.
 
 - After the injection phase, you need to fill the commit hash of N-th injected
   bug of each team, with the following command.
+
     ```bash
     ./gitctf.py hash
     ```
@@ -138,21 +149,22 @@ Git-based CTF. The machine needs to be time-synchronized with an NTP server.
   assuming that you have a proper set-up for the ssh-agent and the gpg-agent,
   because this command will invoke a series of `ssh` and `gpg` commands, and
   such commands require a user to enter a passphrase.
+
     ```bash
     ./gitctf.py eval --token API_TOKEN
     ```
+
   This command will run in an infinite loop, automatically fetch issues from
   the repositories, and update the scoreboard. This process will be killed when
   CTF is finished.
 
-
 ## Configuration
 
-[This file](scripts/config.json) contains critical information for managing
+[This file](configuration/config.json) contains critical information for managing
 Git-based CTF. This script must be created by an instructor, and distributed to
 students before a CTF begins. You can check out an [example configuration file](https://github.com/KAIST-IS521/2018-Spring/blob/master/Activities/config.json)
 
-##### The [config.json](scripts/config.json) file requires the following fields:
+### The [config.json](configuration/config.json) file requires the following fields:
 
 1. `player`: Your GitHub ID.
 1. `player_team`: Your team name.
@@ -177,17 +189,22 @@ students before a CTF begins. You can check out an [example configuration file](
     1. `pub_key_id`: The public key ID of the individual.
     1. `team`: Which team does this individual belong to?
 
-# Authors
+## Authors
 
 This research project has been conducted by [SoftSec Lab](https://softsec.kaist.ac.kr) at KAIST.
 
-* Seongil Wi
-* [Jaeseung Choi](https://softsec.kaist.ac.kr/~jschoi/)
-* [Sang Kil Cha](https://softsec.kaist.ac.kr/~sangkilc/)
+- Seongil Wi
+- [Jaeseung Choi](https://softsec.kaist.ac.kr/~jschoi/)
+- [Sang Kil Cha](https://softsec.kaist.ac.kr/~sangkilc/)
 
-# Citing Git-based CTF
+Updating this to Python3, adapting to using GitHub Organizations, and adding managment of page for the admins.
+
+- [Alex O'Connor](https://www.github.com/AlexOConnorHub)
+
+## Citing Git-based CTF
 
 To cite our paper:
+
 ```
 @INPROCEEDINGS{wi:usenixase:2018,
     author = {SeongIl Wi and Jaeseung Choi and Sang Kil Cha},
@@ -197,10 +214,10 @@ To cite our paper:
 }
 ```
 
-# License
+## License
 
 This project is licensed under the [Apache License](LICENSE.md)
 
-# Acknowledgement
+## Acknowledgement
 
 We thank GitHub for providing unlimited free plan for organizing classes. We also thank HyungSeok Han and anonymous reviewers for their constructive feedback. This work was supported by Institute for Information & communications Technology Promotion (IITP) grant funded by the Korea government (MSIT)

@@ -1,0 +1,52 @@
+<!-- Templates -->
+<div class="d-none template">
+    <div class="card col-sm-6" style="width: 20rem;">
+        <div class="card-body">
+            <h3 class="card-title"></h5>
+            <label class="form-label" for="team-member-name">New team member</label>
+            <div class="input-group">
+                <input type="text" class="form-control" id="team-member-name" name="team-member-name" placeholder="GitHub Username">
+                &nbsp; &nbsp; &nbsp;
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-success float-end"><i class="fas fa-plus"></i></button>
+                </span>
+            </div>
+            </br>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">GitHub Username</th>
+                        <th scope="col">Remove</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div id="table-item">
+        <tr>
+            <td id="team-member-name-label"></td>
+            <td><button type="button" class="btn btn-danger"><i class="fas fa-trash-alt"></i></button></td>
+        </tr>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Team Setup</h5>
+                <button type="button" id="modal-close" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="modal-submit">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>

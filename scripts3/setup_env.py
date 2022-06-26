@@ -136,7 +136,7 @@ def create_dockerfile(problem_info, repo_dir_path, template_path, sed_cmd):
     with open(os.path.join(repo_dir_path, 'Dockerfile'), 'w') as f:
         f.write(dockerfile)
 
-def local_setup(repo_owner, scoreboard_name, problems, template_path, sed_cmd, repo_location):
+def local_setup(repo_owner, scoreboard_name, problems, template_path, repo_location, teams):
     print('[*] Start local setup')
     # Create root directory for CTF env.
     prompt_rmdir_warning(os.path.join(repo_location, repo_owner))
@@ -150,25 +150,30 @@ def local_setup(repo_owner, scoreboard_name, problems, template_path, sed_cmd, r
         commit_and_push(os.path.join(scoreboard_dir_path, scoreboard_name), 'Initialize scoreboard')
 
     # Setup local problems repo
-    for problem in problems:
-        problem_info = problems[problem]
-        repo_dir_path = os.path.join(repo_location, repo_owner)
-        if create_local_repo(problem_info['repo_name'], repo_dir_path):
-            repo_dir_path = os.path.join(repo_dir_path, problem_info['repo_name'])
-            print('[*] Copy binary')
-            copy(problem_info['bin_src_path'], repo_dir_path)
-            print('[*] Create flag file')
-            create_flag(repo_dir_path)
-            print('[*] Make Dockerfile')
-            create_dockerfile(problem_info, repo_dir_path, template_path, sed_cmd)
-            commit_and_push(repo_dir_path, f"Add problem: {problem_info['repo_name']}")
+    for team_name in teams:
+        if (team_name == "instructor"):
+            continue
+        team = teams[team_name]
+        for problem_name in problems:
+            problem = problems[problem_name]
+            repo_name = team[problem_name]["repo_name"]
+            repo_dir_path = os.path.join(repo_location, repo_owner)
+            if create_local_repo(repo_name, repo_dir_path):
+                repo_dir_path = os.path.join(repo_dir_path, repo_name)
+                print('[*] Copy binary')
+                copy(problem['bin_src_path'], repo_dir_path)
+                print('[*] Create flag file')
+                create_flag(repo_dir_path)
+                print('[*] Make Dockerfile')
+                create_dockerfile(problem, repo_dir_path, template_path, problem['sed_cmd'])
+                commit_and_push(repo_dir_path, f"Add problem: {repo_name}")
 
 def setup_env(admin_config_file, repo_location):
     admin_config = load_config(admin_config_file)
     repo_owner = admin_config['repo_owner']
-    scoreboard_name = admin_config['scoreboard_name']
+    scoreboard_name = f"{repo_owner}.github.io"
     problems = admin_config['problems']
     template_path = admin_config['template_path']
-    sed_cmd = admin_config['sed_cmd']
+    teams = admin_config['teams']
     
-    local_setup(repo_owner, scoreboard_name, problems, template_path, sed_cmd, repo_location)
+    local_setup(repo_owner, scoreboard_name, problems, template_path, repo_location, teams)

@@ -32,28 +32,24 @@ ENV GH_TOKEN=$GH_TOKEN_BUILD
 # Download and install packages needed
 RUN apk add --update --no-cache python3 git github-cli gnupg zip
 RUN python3 -m ensurepip
-RUN pip3 install --no-cache --upgrade pip setuptools python-dateutil docker bottle
+RUN pip3 install --no-cache --upgrade setuptools python-dateutil docker bottle
 
 # Create directories for the project
-RUN mkdir /etc/gitctf
-RUN mkdir /usr/local/share/gitctf
-RUN mkdir -p /srv/gitctf/css
-RUN mkdir -p /srv/gitctf/images
-RUN mkdir -p /srv/gitctf/fonts
+RUN mkdir -p /etc/gitctf
+RUN mkdir -p /usr/local/share/gitctf
+RUN mkdir -p /srv/gitctf/public/css
+RUN mkdir -p /srv/gitctf/public/images
+RUN mkdir -p /srv/gitctf/public/fonts
+RUN mkdir -p /srv/gitctf/templates
+RUN mkdir -p /srv/gitctf/pages
 
 # Populate the directories
-COPY scripts3/* /usr/local/bin/
-COPY templates/* /usr/local/share/gitctf/
-COPY web/css /srv/gitctf/css
-COPY web/images /srv/gitctf/images
-COPY web/fonts /srv/gitctf/fonts
-COPY web/index.html /srv/gitctf
-COPY web/setup.html /srv/gitctf
-COPY web/manage.html /srv/gitctf
-COPY configuration/* /etc/gitctf/
-COPY docker_entry.py /
+COPY templates/*     /usr/local/share/gitctf/
+COPY web/fonts/*     /srv/gitctf/public/fonts/
+COPY web/images/*    /srv/gitctf/public/images/
+COPY web/css/*       /srv/gitctf/public/css/
+COPY web/templates/* /srv/gitctf/templates/
+COPY web/pages/*     /srv/gitctf/pages/
+COPY scripts3/*      /usr/local/bin/
 
-# sed script
-RUN sed -i 's/\.\.\/templates/\/usr\/local\/share\/gitctf\//g' /etc/gitctf/.config.json
-
-ENTRYPOINT [ "/docker_entry.py" ]
+ENTRYPOINT [ "/usr/local/bin/docker_entry.py" ]

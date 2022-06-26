@@ -1,0 +1,117 @@
+<!-- 
+    action: POST endpoint
+    organization: org-name
+    startdate: start-date
+    starttime: start-time
+    enddate: end-date
+    endtime: end-time
+    intended: intended-points
+    unintended: unintended-points
+    round: round-frequency
+    exersize_timeout: exploit-timeout-exersize
+    injection_timeout: exploit-timeout-injection
+    image: base-image
+    number_of_teams: number-of-teams
+    port: port-number
+    bugs: number-of-bugs
+    stand_alone_selected: "selected"
+    xinitd_selected: "selected"
+    packages: packages
+    sed: sed-cmd
+    args: bin-args
+-->
+
+<form class="row form-horizontal needs-validation" action="$action" method="POST" id="make-ctf-form" default>
+    <div class="form-group d-none">
+        <input type="text" name="timezone-offset" id="timezone-offset">
+    </div>
+    <div class="form-group">
+        <label class="form-label" for="org-name">&nbsp; <i class="fas fa-hotel"></i> Organization Name</label>
+        <input type="text" class="form-control" id="org-name" name="org-name" value="$organization" placeholder="Organization Name" required>
+    </div>
+    <div class="form-group date">
+        <label class="form-label" for="start-date">&nbsp; <i class="fas fa-calendar-alt"></i> Date to start then CTF</label>
+        <input type="date" class="form-control" id="start-date" name="start-date" value="$startdate" required/>
+    </div>
+    <div class="form-group">
+        <label class="form-label" for="start-time">&nbsp; <i class="fas fa-clock"></i> Time to start then CTF</label>
+        <input type="time" class="form-control time" id="start-time" name="start-time" value="$starttime"  required/>
+    </div>
+    <div class="form-group date">
+        <label class="form-label" for="end-date">&nbsp; <i class="fas fa-calendar-alt"></i> Date to end the CTF</label>
+        <input type="date" class="form-control" id="end-date" name="end-date" value="$enddate" required/>
+    </div>
+    <div class="form-group">
+        <label class="form-label" for="end-time">&nbsp; <i class="fas fa-clock"></i> Time to end the CTF</label>
+        <input type="time" class="form-control" id="end-time" name="end-time" value="$endtime" required/>
+    </div>
+    <div class="form-group">
+        <label class="form-label" for="intended-points">&nbsp; <i class="fas fa-coins"></i> Intended Points</label>
+        <input type="number" class="form-control" id="intended-points" name="intended-points" placeholder="10" value="$intended" required/>
+    </div>
+    <div class="form-group">
+        <label class="form-label" for="unintended-points">&nbsp; <i class="fas fa-coins"></i> Intended Points</label>
+        <input type="number" class="form-control" id="unintended-points" name="unintended-points" placeholder="60" value="$unintended" required/>
+    </div>
+    <div class="form-group">
+        <label class="form-label" for="round-frequency">&nbsp; <i class="fas fa-clock"></i> Round Frequency</label>
+        <input type="number" class="form-control" id="round-frequency" name="round-frequency" placeholder="600" value="$round" required/>
+    </div>
+    <div class="form-group">
+        <label class="form-label" for="exploit-timeout-exersize">&nbsp; <i class="fas fa-clock"></i> Exploit Timeout Exersize</label>
+        <input type="number" class="form-control" id="exploit-timeout-exersize" name="exploit-timeout-exersize" placeholder="30" value="$exersize_timeout" required/>
+    </div>
+    <div class="form-group">
+        <label class="form-label" for="exploit-timeout-injection">&nbsp; <i class="fas fa-clock"></i> Exploit Timeout Injection</label>
+        <input type="number" class="form-control" id="exploit-timeout-injection" name="exploit-timeout-injection" placeholder="60" value="$injection_timeout" required/>
+    </div>
+    <div class="form-group">
+        <label class="form-label" for="base-image">&nbsp; <i class="fas fa-life-ring"></i> Base Docker Image</label>
+        <input type="text" class="form-control" id="base-image" name="base-image" placeholder="ubuntu:latest" value="$image" required>
+    </div>
+    <div class="form-group">
+        <label class="form-label" for="number-of-teams">&nbsp; <i class="fas fa-users"></i> Number of Teams</label>
+        <input type="number" class="form-control" id="number-of-teams" name="number-of-teams" required placeholder="4" value="$number_of_teams">
+    </div>
+    <div class="form-group">
+        <label class="form-label" for="port-number"> &nbsp; <i class="fas fa-cogs"></i> Port Number</label>
+        <input type="number" class="form-control" id="port-number" name="port-number" required placeholder="2000" value="$port">
+    </div>
+    <div class="form-group">
+        <label class="form-label" for="number-of-bugs"></i> &nbsp; <i class="fas fa-bug"></i> Number of Bugs</label>
+        <input type="number" class="form-control" id="number-of-bugs" name="number-of-bugs" required placeholder="4" value="$bugs">
+    </div>
+    <div class="form-group">
+        <label class="form-label" for="service-name"></i> &nbsp; <i class="fas fa-align-justify"></i> Type of service</label>
+        <select class="form-control" id="service-name" name="service-name" required>
+            <option value="stand-alone" $stand_alone_selected>stand-alone</option>
+            <option value="xinitd" $xinitd_selected>xinitd</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label class="form-label" for="packages">&nbsp; <i class="fas fa-cubes"></i> Required Packages</label>
+        <input type="text" class="form-control" id="packages" name="packages" placeholder="sudo" value="$packages">
+    </div>
+    <div class="form-group">
+        <label class="form-label" for="sed-cmd">&nbsp; <i class="fas fa-terminal"></i> Custom Mirror sh command</label>
+        <input type="text" class="form-control" id="sed-cmd" name="sed-cmd" value="$sed" placeholder="sed -i 's/deb.debian.org/ftp.yourmirror.com/g' /etc/apt/sources.list">
+    </div>
+    <div class="form-group">
+        <label class="form-label" for="bin-args">&nbsp; <i class="fas fa-cubes"></i> Custom Binary Arguments</label>
+        <input type="text" class="form-control" id="bin-args" name="bin-args" value="$args" placeholder="--arg1 --arg2">
+    </div>
+    <button type="submit" class="btn btn-primary">Setup Teams</button>
+</form>
+<script>
+    Date.prototype.stdTimezoneOffset = function () {
+        var jan = new Date(this.getFullYear(), 0, 1);
+        var jul = new Date(this.getFullYear(), 6, 1);
+        return Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
+    }
+    let offset = new Date().stdTimezoneOffset()/60;
+    let offset_text = (offset > 0) ? "+" : "-";
+    if (offset < 10) {
+        offset_text += "0";
+    }
+    document.getElementById('timezone-offset').value = offset_text + offset + ":00";
+</script>

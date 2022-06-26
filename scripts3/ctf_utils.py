@@ -28,6 +28,7 @@ from dateutil.tz import tzutc
 from docker import from_env
 from json import load
 from os import remove, makedirs, path
+from random import choice
 from shutil import copy2, rmtree
 from string import ascii_letters, digits
 from sys import exit
@@ -98,6 +99,8 @@ def docker_cleanup(container_name):
 
 def load_config(config_file):
     try:
+        # Consider using API `curl https://api.github.com/repos/:owner/:repo/contents/:path | jq -r ".content" | base64 --decode`
+        # To curl the contents of the config file from org public site.
         with open(config_file) as f:
             return load(f)
     except Exception as e:

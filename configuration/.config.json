@@ -16,6 +16,7 @@
             "base_image": "custom:2022",
             "sed_cmd": "",
             "service_exe_type": "stand-alone",
+            "number_of_bugs": 3,
             "description": "service repositoy",
             "bin_src_path": "/usr/local/share/vuln64",
             "bin_dst_path": "/service/vuln",

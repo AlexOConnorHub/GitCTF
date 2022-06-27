@@ -36,7 +36,6 @@ $("#modal-submit").on(
                 );
             }
         );
-        console.log(individuals);
         data.append("individuals", JSON.stringify(individuals));
         $.ajax({
             type: "POST",

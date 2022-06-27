@@ -9,8 +9,8 @@
     intended: intended-points
     unintended: unintended-points
     round: round-frequency
-    exersize_timeout: exploit-timeout-exersize
     injection_timeout: exploit-timeout-injection
+    exersize_timeout: exploit-timeout-exersize
     image: base-image
     number_of_teams: number-of-teams
     port: port-number
@@ -50,19 +50,19 @@
     </div>
     <div class="form-floating">
         <input type="number" class="form-control" id="unintended-points" name="unintended-points" placeholder="60" value="$unintended" required/>
-        <label class="form-label" for="unintended-points">&nbsp; <i class="fas fa-coins"></i> Intended Points</label>
+        <label class="form-label" for="unintended-points">&nbsp; <i class="fas fa-coins"></i> Unintended Points</label>
     </div>
     <div class="form-floating">
         <input type="number" class="form-control" id="round-frequency" name="round-frequency" placeholder="600" value="$round" required/>
         <label class="form-label" for="round-frequency">&nbsp; <i class="fas fa-clock"></i> Round Frequency</label>
     </div>
     <div class="form-floating">
-        <input type="number" class="form-control" id="exploit-timeout-exersize" name="exploit-timeout-exersize" placeholder="30" value="$exersize_timeout" required/>
-        <label class="form-label" for="exploit-timeout-exersize">&nbsp; <i class="fas fa-clock"></i> Exploit Timeout Exersize</label>
-    </div>
-    <div class="form-floating">
         <input type="number" class="form-control" id="exploit-timeout-injection" name="exploit-timeout-injection" placeholder="60" value="$injection_timeout" required/>
         <label class="form-label" for="exploit-timeout-injection">&nbsp; <i class="fas fa-clock"></i> Exploit Timeout Injection</label>
+    </div>
+    <div class="form-floating">
+        <input type="number" class="form-control" id="exploit-timeout-exersize" name="exploit-timeout-exersize" placeholder="30" value="$exersize_timeout" required/>
+        <label class="form-label" for="exploit-timeout-exersize">&nbsp; <i class="fas fa-clock"></i> Exploit Timeout Exersize</label>
     </div>
     <div class="form-floating">
         <input type="number" class="form-control" id="number-of-teams" name="number-of-teams" required placeholder="4" value="$number_of_teams">

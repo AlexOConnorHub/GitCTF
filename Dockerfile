@@ -55,6 +55,6 @@ COPY web/css/*       /srv/gitctf/public/css/
 COPY web/templates/* /srv/gitctf/templates/
 COPY web/pages/*     /srv/gitctf/pages/
 COPY scripts3/*      /usr/local/bin/
-COPY configuration/.config.json /etc/gitctf/
+# COPY configuration/.config.json /etc/gitctf/
 
 ENTRYPOINT [ "/usr/local/bin/docker_entry.py" ]

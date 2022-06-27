@@ -22,7 +22,7 @@
     args: bin-args
 -->
 
-<form class="row form-horizontal needs-validation" action="$action" method="POST" id="make-ctf-form" default>
+<form class="row form-horizontal justify-content-center" action="$action" method="POST" id="make-ctf-form" default>
     <input type="text" name="timezone-offset" class="d-none" id="timezone-offset">
     <div class="form-floating">
         <input $managing type="text" class="form-control" id="org-name" name="org-name" value="$organization" placeholder="Organization Name" required>
@@ -99,7 +99,6 @@
         <input $managing type="text" class="form-control" id="bin-args" name="bin-args" value="$args" placeholder="--arg1 --arg2">
         <label class="form-label" for="bin-args">&nbsp; <i class="fas fa-cubes"></i> Custom Binary Arguments</label>
     </div>
-    <button type="submit" class="btn btn-primary">Setup Teams</button>
 </form>
 <script>
     Date.prototype.stdTimezoneOffset = function () {

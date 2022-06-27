@@ -22,9 +22,28 @@
                 </div>
             </div>
             $form
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-primary" id="config-form-submit">Manage Teams</button>
+                </div>
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-success" id="manage-submit-form">Save Changes</button>
+                </div>
+            </div>
         </div>
         $modal
-
+        <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+            <div id="liveToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">Bootstrap</strong>
+                <small>11 mins ago</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                Hello, world! This is a toast message.
+            </div>
+            </div>
+        </div>
         <script>
             $manage_script
         </script>

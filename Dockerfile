@@ -30,18 +30,22 @@ ARG GH_TOKEN_BUILD="PLEASE_SET_GH_TOKEN_BUILD"
 ENV GH_TOKEN=$GH_TOKEN_BUILD
 
 # Download and install packages needed
-RUN apk add --update --no-cache python3 git github-cli gnupg zip
-RUN python3 -m ensurepip
-RUN pip3 install --no-cache --upgrade setuptools python-dateutil docker bottle
+RUN apk add --update --no-cache python3 git github-cli gnupg zip; \
+    python3 -m ensurepip; \
+    pip3 install --no-cache --upgrade setuptools python-dateutil docker bottle; \
+    git config --global user.name $(gh api /user -q .login); \
+    git config --global user.email $(gh api /user/emails -q .[1].email); \
+    git config --global credential.helper store; \
+    echo https://$(gh api /user -q .id):$GH_TOKEN@github.com > /root/.git-credentials;
 
 # Create directories for the project
-RUN mkdir -p /etc/gitctf
-RUN mkdir -p /usr/local/share/gitctf
-RUN mkdir -p /srv/gitctf/public/css
-RUN mkdir -p /srv/gitctf/public/images
-RUN mkdir -p /srv/gitctf/public/fonts
-RUN mkdir -p /srv/gitctf/templates
-RUN mkdir -p /srv/gitctf/pages
+RUN mkdir -p /etc/gitctf; \
+    mkdir -p /usr/local/share/gitctf; \
+    mkdir -p /srv/gitctf/public/css; \
+    mkdir -p /srv/gitctf/public/images; \
+    mkdir -p /srv/gitctf/public/fonts; \
+    mkdir -p /srv/gitctf/templates; \
+    mkdir -p /srv/gitctf/pages
 
 # Populate the directories
 COPY templates/*     /usr/local/share/gitctf/
@@ -51,5 +55,6 @@ COPY web/css/*       /srv/gitctf/public/css/
 COPY web/templates/* /srv/gitctf/templates/
 COPY web/pages/*     /srv/gitctf/pages/
 COPY scripts3/*      /usr/local/bin/
+COPY configuration/.config.json /etc/gitctf/
 
 ENTRYPOINT [ "/usr/local/bin/docker_entry.py" ]

@@ -1,21 +1,66 @@
 {
+    "repo_owner": "org",
+    "intended_pts": "10",
+    "unintended_pts": "60",
+    "round_frequency": "600",
+    "start_time": "2022-07-01T00:00:00+05:00",
+    "end_time": "2022-08-01T23:59:00+05:00",
+    "exploit_timeout": {
+        "injection_phase": "15",
+        "exercise_phase": "45"
+    },
+    "template_path": "/usr/local/share/gitctf",
     "instructor": "AlexOConnorHub",
-    "repo_owner": "AlexOConnorHub",
-    "scoreboard_name": "scoreboard",
-    "template_path": "/usr/local/share/gitctf/",
-    "sed_cmd": "RUN echo Using default mirrors",
     "problems": {
-        "problem1": {
-            "base_image": "ubuntu:latest",
-            "service_exe_type": "xinetd",
-            "repo_name": "team1",
-            "description": "team1's service repositoy",
-            "bin_src_path": "/usr/local/share/gitctf//vuln64",
+        "problem-1": {
+            "base_image": "custom:2022",
+            "sed_cmd": "",
+            "service_exe_type": "stand-alone",
+            "description": "service repositoy",
+            "bin_src_path": "/usr/local/share/vuln64",
             "bin_dst_path": "/service/vuln",
             "flag_dst_path": "/var/ctf/flag",
-            "bin_args": "",
-            "port": "2000",
-            "required_packages": "xinetd sudo"
+            "bin_args": "--debug",
+            "port": "2022",
+            "required_packages": "nmap"
+        }
+    },
+    "teams": {
+        "instructor": {
+            "repo_name": "-",
+            "pub_key_id": "PLEASE_SUBMIT_PULL_REQUEST"
+        },
+        "team-1": {
+            "pub_key_id": "PLEASE_SUBMIT_PULL_REQUEST",
+            "problem-1": {
+                "repo_name": "team-1-problem-1",
+                "bug-0": "HASH_TO_BE_DETERMINED",
+                "bug-1": "HASH_TO_BE_DETERMINED",
+                "bug-2": "HASH_TO_BE_DETERMINED"
+            }
+        },
+        "team-2": {
+            "pub_key_id": "PLEASE_SUBMIT_PULL_REQUEST",
+            "problem-1": {
+                "repo_name": "team-2-problem-1",
+                "bug-0": "HASH_TO_BE_DETERMINED",
+                "bug-1": "HASH_TO_BE_DETERMINED",
+                "bug-2": "HASH_TO_BE_DETERMINED"
+            }
+        }
+    },
+    "individuals": {
+        "AlexOConnorHub": {
+            "team": "instructor",
+            "pub_key_id": "PLEASE_SUBMIT_PULL_REQUEST"
+        },
+        "Alex": {
+            "team": "team-1",
+            "pub_key_id": "PLEASE_SUBMIT_PULL_REQUEST"
+        },
+        "OConnor": {
+            "team": "team-2",
+            "pub_key_id": "PLEASE_SUBMIT_PULL_REQUEST"
         }
     }
 }

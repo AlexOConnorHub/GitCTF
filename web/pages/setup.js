@@ -1,6 +1,5 @@
-$('#make-ctf-form').submit(
-    function(e){
-        e.preventDefault();
+$('#config-form-submit').on("click",
+    function(){
         $(".modal-body").html('<div class="row"></div>');
         let tableItemPartOne = '<tr><td id="team-member-name-label">';
         let tableItemPartTwo = '</td><td><button type="button" class="btn btn-danger" onclick="$(this).closest(\'tr\').remove();""><i class="fas fa-trash-alt"></i></button></td></tr>';
@@ -41,7 +40,7 @@ $("#modal-submit").on(
         data.append("individuals", JSON.stringify(individuals));
         $.ajax({
             type: "POST",
-            url: "/setup-form",
+            url: $(".form-horizontal")[0].action,
             data: data,
             processData: false,
             contentType: false,

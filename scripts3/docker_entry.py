@@ -30,17 +30,16 @@ from shutil import move
 from string import Template
 from subprocess import check_output
 
-### FOR DOCKER ENVIRONMENT SETUP
-if (not exists("~/.gitconfig")):
-    check_output(["git_setup.sh"])
-
-### FOR BOTTLE SERVER
+config_file_path = "/etc/gitctf/.config.json"
+data = {}
+if (exists(config_file_path)):
+    with open(config_file_path, "r") as f:
+        data = loads(f.read())
 
 app = Bottle()
 
 server_root = "/srv/gitctf"
 public_files = "/srv/gitctf/public"
-data = {}
 with open(join(server_root, 'templates/header.html'), 'r') as f:
     header = f.read()
 with open(join(server_root, 'templates/navbar.html'), 'r') as f:
@@ -128,11 +127,11 @@ def setup_config():
                 "team": individuals[name],
                 "pub_key_id": "PLEASE_SUBMIT_PULL_REQUEST",
             }
-    if (exists("/etc/gitctf/.config.json")):
-        move("/etc/gitctf/.config.json", "/etc/gitctf/.config.json.bk")
-    with open("/etc/gitctf/.config.json", "w") as f:
+    if (exists(config_file_path)):
+        move(config_file_path, "/etc/gitctf/.config.json.bk")
+    with open(config_file_path, "w") as f:
         f.write(dumps(data, indent=4))
-    main("setup", ["--admin-conf", "/etc/gitctf/.config.json", "--repo_location", "/usr/local/share/"])
+    main("setup", ["--admin-conf", config_file_path, "--repo_location", "/usr/local/share/"])
     return {"status": "success"}
 
 @app.route('/<file:path>')
@@ -150,7 +149,7 @@ def index_page():
 @app.route('/setup.html')
 def setup_page():
     config_script = ""
-    if (exists("/etc/gitctf/.config.json")):
+    if (exists(config_file_path)):
         config_script = """
         if (!confirm('You already have a configuration. Do you want to overwrite it?')) { 
             window.location.href = '/manage'; 
@@ -158,7 +157,7 @@ def setup_page():
     i = Template(setup)
     c = Template(config_form)
     config = c.substitute(
-        action = "",
+        action = "/setup-form",
         organization = "",
         managing = "",
         startdate = "",
@@ -186,7 +185,7 @@ def setup_page():
 @app.route('/manage.html')
 def manage_page():
     global data
-    if not exists("/etc/gitctf/.config.json"):
+    if not exists(config_file_path):
         redirect("/setup")
     i = Template(manage)
     c = Template(config_form)
@@ -206,7 +205,7 @@ def manage_page():
         image = data["problems"]["problem-1"]["base_image"],
         number_of_teams = len(data["teams"]) - 1,
         port = data["problems"]["problem-1"]["port"],
-        bugs = len(data["teams"]["team-1"]) - 2,
+        bugs = len(data["teams"]["team-1"]["problem-1"]) - 2,
         stand_alone_selected = "selected" if data["problems"]["problem-1"]["service_exe_type"] == "stand_alone" else "",
         xinitd_selected = "selected" if data["problems"]["problem-1"]["service_exe_type"] == "xinitd" else "",
         packages = data["problems"]["problem-1"]["required_packages"],
@@ -219,8 +218,13 @@ def manage_page():
 @app.route("/scoreboard.html")
 def scoreboard_page():
     global data
-    if not exists("/etc/gitctf/.config.json"):
+    if not exists(config_file_path):
         redirect("/setup")
     return Template(scoreboard).substitute(header = header, navbar = navbar, src = f"https://{data['repo_owner']}.github.io")
+
+@app.route("/individuals")
+def individuals_ajax():
+    global data
+    return data["individuals"]
 
 run(app, host='0.0.0.0', port=80, debug=True) # TODO: Change to False

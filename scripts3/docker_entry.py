@@ -21,7 +21,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from glob import glob
 from bottle import request, run, static_file, Bottle, redirect
 from gitctf import main
 from json import dumps, loads
@@ -31,7 +30,7 @@ from shutil import move
 from string import Template
 from subprocess import check_output
 
-config_file_path = "/etc/gitctf/.config.json"
+config_file_path = "/etc/gitctf/config.json"
 data = {}
 data_last_modified = 0
 
@@ -147,7 +146,7 @@ def setup_config():
                 "pub_key_id": "PLEASE_SUBMIT_PULL_REQUEST",
             }
     if (exists(config_file_path)):
-        move(config_file_path, "/etc/gitctf/.config.json.bk")
+        move(config_file_path, f"{config_file_path}.bk")
     save_config()
     main("setup", ["--admin-conf", config_file_path, "--repo_location", "/usr/local/share/"])
     return {"status": "success"}

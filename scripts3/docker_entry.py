@@ -21,14 +21,16 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+from cmath import exp
+from glob import glob
 from bottle import request, run, static_file, Bottle, redirect
-from gitctf import main
+from github import request as gh
 from json import dumps, loads
-# from os import system, popen
 from os.path import exists, join, getmtime
+from ctf_utils import rmdir
+from setup_env import setup_env, commit_and_push
 from shutil import move
 from string import Template
-from subprocess import check_output
 
 config_file_path = "/etc/gitctf/config.json"
 data = {}
@@ -47,36 +49,72 @@ def load_config():
     else:
         return False
 
-def save_config():
+def save_config(push_changes):
     global data, data_last_modified
     with open(config_file_path, "w") as f:
         f.write(dumps(data))
     data_last_modified = getmtime(config_file_path)
+    scoreboard_path = f"/usr/local/share/{data['repo_owner']}/{data['repo_owner']}.github.io"
+    if push_changes and exists(scoreboard_path):
+        commit_and_push(scoreboard_path, "Updated config.json")
+    
+def get_id(username):
+    user_json = gh(f"/users/{username}")
+    if user_json is None or "id" not in user_json:
+        print(f"[*] Failed to get user id {username}")
+        return None
+    return user_json["id"]    
+
+def create_team(team_name):
+    global data
+    print(f"[*] Creating team {team_name}")
+    team = gh(f"/orgs/{data['repo_owner']}/teams", {"name": team_name, "description": f"{team_name} Team", "privacy": "closed"}, 201)
+    if team is None or "slug" not in team:
+        print(f"[*] Failed to create team {team_name}")
+        return None
+    return team["slug"]
+
+def add_to_team(username, team_slug):
+    global data
+    print(f"[*] Adding user id {username} to team {team_slug}")
+    if gh(f"/orgs/{data['repo_owner']}/teams/{team_slug}/memberships/{username}", method="PUT") is None:
+        print(f"[*] Failed to add user id {username} to team {team_slug}")
+        return False
+    
+def remove_from_team(username, team_slug):
+    global data
+    print(f"[*] Removing user id {username} from team {team_slug}")
+    if gh(f"/orgs/{data['repo_owner']}/teams/{team_slug}/memberships/{username}", method="DELETE", expected_code=204) is None:
+        print(f"[*] Failed to remove user id {username} from team {team_slug}")
+        return False
 
 app = Bottle()
 
 server_root = "/srv/gitctf"
 public_files = "/srv/gitctf/public"
-with open(join(server_root, 'templates/header.html'), 'r') as f:
-    header = f.read()
-with open(join(server_root, 'templates/navbar.html'), 'r') as f:
-    navbar = f.read()
-with open(join(server_root, 'templates/config_form.html'), 'r') as f:
-    config_form = f.read()
-with open(join(server_root, 'templates/user_modal.html'), 'r') as f:
-    user_modal = f.read()
-with open(join(server_root, 'pages/index.html'), 'r') as f:
-    index = f.read()
-with open(join(server_root, 'pages/setup.html'), 'r') as f:
-    setup = f.read()
-with open(join(server_root, 'pages/manage.html'), 'r') as f:
-    manage = f.read()
-with open(join(server_root, 'pages/scoreboard.html'), 'r') as f:
-    scoreboard = f.read()
-with open(join(server_root, 'pages/manage.js'), 'r') as f:
-    manage_js = f.read()
-with open(join(server_root, 'pages/setup.js'), 'r') as f:
-    setup_js = f.read()
+try:
+    with open(join(server_root, 'templates/header.html'), 'r') as f:
+        header = f.read()
+    with open(join(server_root, 'templates/navbar.html'), 'r') as f:
+        navbar = f.read()
+    with open(join(server_root, 'templates/config_form.html'), 'r') as f:
+        config_form = f.read()
+    with open(join(server_root, 'templates/user_modal.html'), 'r') as f:
+        user_modal = f.read()
+    with open(join(server_root, 'pages/index.html'), 'r') as f:
+        index = f.read()
+    with open(join(server_root, 'pages/setup.html'), 'r') as f:
+        setup = f.read()
+    with open(join(server_root, 'pages/manage.html'), 'r') as f:
+        manage = f.read()
+    with open(join(server_root, 'pages/scoreboard.html'), 'r') as f:
+        scoreboard = f.read()
+    with open(join(server_root, 'pages/manage.js'), 'r') as f:
+        manage_js = f.read()
+    with open(join(server_root, 'pages/setup.js'), 'r') as f:
+        setup_js = f.read()
+except:
+    pass
 
 @app.route('/favicon.ico')
 def return_favicon():
@@ -85,7 +123,13 @@ def return_favicon():
 @app.route('/setup-form', method='POST')
 def setup_config():
     global data
-    owner = check_output(["gh", "api", "/user", "-q", ".login"]).decode()[:-1]
+    if "repo_owner" in data:
+        rmdir(join("/usr/local/share", data["repo_owner"]))
+    # owner = check_output(["gh", "api", "/user", "-q", ".login"]).decode()[:-1]
+    owner_json = gh("/user")
+    if owner_json is None or "login" not in owner_json:
+        return {"error": "Failed to get owner's username"}
+    owner = owner_json["login"]
     data = {
         "repo_owner": request.forms['org-name'],
         "intended_pts": request.forms['intended-points'],
@@ -117,38 +161,45 @@ def setup_config():
         "teams": {
             "instructor": {
                 "repo_name": "-",
+                "slug": "-",
                 "pub_key_id": "PLEASE_SUBMIT_PULL_REQUEST",
             }
         },
         "individuals": {
             owner: {
                 "team": "instructor",
+                "id": get_id(owner),
                 "pub_key_id": "PLEASE_SUBMIT_PULL_REQUEST",
             }
         }
     }
     for x in range(1, 1 + int(request.forms["number-of-teams"])):
-        team_key = {
+        team_key = f"team-{x}"
+        team = {
             "pub_key_id": "PLEASE_SUBMIT_PULL_REQUEST",
+            "slug": create_team(team_key),
         }
         for problem in data["problems"]:
-            team_key[problem] = {
-                "repo_name": f"team-{x}-{problem}",
+            team[problem] = {
+                "repo_name": f"{team_key}-{problem}",
             }
             for y in range(1, 1 + int(data["problems"][problem]["number_of_bugs"])):
-                team_key[problem][f"bug-{y}"] = "HASH_TO_BE_DETERMINED"
-        data["teams"][f"team-{x}"] = team_key
+                team[problem][f"bug-{y}"] = "HASH_TO_BE_DETERMINED"
+        data["teams"][team_key] = team
     individuals = loads(request.forms["individuals"])
     for name in individuals:
         if (individuals[name] != ""):
             data["individuals"][name] = {
                 "team": individuals[name],
+                "id": get_id(name),
                 "pub_key_id": "PLEASE_SUBMIT_PULL_REQUEST",
             }
+        add_to_team(name, data["teams"][individuals[name]]["slug"])
     if (exists(config_file_path)):
         move(config_file_path, f"{config_file_path}.bk")
-    save_config()
-    main("setup", ["--admin-conf", config_file_path, "--repo_location", "/usr/local/share/"])
+    save_config(False)
+    setup_env(config_file_path, "/usr/local/share")
+    # main("setup", ["--admin-conf", config_file_path, "--repo_location", "/usr/local/share/"])
     return {"status": "success"}
 
 @app.route("/manage-form", method="POST")
@@ -163,7 +214,6 @@ def manage_form():
     form_exploit_timeout_injection = request.forms['exploit-timeout-injection']
     form_exploit_timeout_exersize = request.forms['exploit-timeout-exersize']
     form_number_of_teams = request.forms['number-of-teams']
-
     dirty = False
     if (data["start_time"] != form_start):
         data["start_time"] = form_start
@@ -187,20 +237,24 @@ def manage_form():
         data["exploit_timeout"]["exercise_phase"] = form_exploit_timeout_exersize
         dirty = True
     if (len(data["teams"]) - 1 != int(form_number_of_teams)):
-        # Store the pub_key_id for all teams
-        pub_keys = {}
+        stored_items = {}
         for team in data["teams"]:
-            pub_keys[team] = data["teams"][team]["pub_key_id"]
+            stored_items[team] = {
+                "pub_key_id": data["teams"][team]["pub_key_id"],
+                "slug": data["teams"][team]["slug"],
+            }
         data["teams"] = {
             "instructor": {
                 "repo_name": data["teams"]["instructor"]["repo_name"],
-                "pub_key_id": pub_keys["instructor"],
+                "pub_key_id": stored_items["instructor"]["pub_key_id"],
+                "slug": stored_items["instructor"]["slug"],
             }
         }
         for x in range(1, 1 + int(form_number_of_teams)):
             team_key = f"team-{x}"
             team_value = {
-                "pub_key_id": "PLEASE_SUBMIT_PULL_REQUEST" if team_key not in pub_keys else pub_keys[team_key],
+                "pub_key_id": "PLEASE_SUBMIT_PULL_REQUEST" if team_key not in stored_items else stored_items[team_key]["pub_key_id"],
+                "slug": create_team(team_key) if team_key not in stored_items else stored_items[team_key]["slug"],
             }
             for problem in data["problems"]:
                 team_value[problem] = {
@@ -211,7 +265,7 @@ def manage_form():
             data["teams"][team_key] = team_value
         dirty = True
     if (dirty):
-        save_config()
+        save_config(True)
     return {"status": "success"}
 
 @app.route("/individuals/update", method="POST")
@@ -220,24 +274,33 @@ def individuals_update():
     load_config()
     individuals = loads(request.forms["individuals"])
     dirty = False
-    pub_key = {}
+    stored_items = {}
     for individual in data["individuals"]:
-        pub_key[individual] = data["individuals"][individual]["pub_key_id"]
+        stored_items[individual] = {
+            "team": data["individuals"][individual]["team"],
+            "id": data["individuals"][individual]["id"],
+            "pub_key_id": data["individuals"][individual]["pub_key_id"],
+        }
     data["individuals"] = {
             data["instructor"] : {
                 "team": "instructor",
-                "pub_key_id": "PLEASE_SUBMIT_PULL_REQUEST" if "instructor" not in pub_key else pub_key["instructor"],
+                "id": get_id(data["instructor"]) if "instructor" not in stored_items else stored_items["instructor"]["id"],
+                "pub_key_id": "PLEASE_SUBMIT_PULL_REQUEST" if "instructor" not in stored_items else stored_items["instructor"]["pub_key_id"],
             }
         }
     for name in individuals:
         if (individuals[name] != ""):
             data["individuals"][name] = {
                 "team": individuals[name],
-                "pub_key_id": "PLEASE_SUBMIT_PULL_REQUEST" if name not in pub_key else pub_key[name],
+                "id": get_id(name) if name not in stored_items else stored_items[name]["id"],
+                "pub_key_id": "PLEASE_SUBMIT_PULL_REQUEST" if name not in stored_items else stored_items[name]["pub_key_id"],
             }
-            dirty = True
+            if individuals[name] != stored_items[name]["team"]:
+                remove_from_team(name, data["teams"][stored_items[name]["team"]]["slug"])
+                add_to_team(name, data["teams"][individuals[name]]["slug"])
+        dirty = True
     if (dirty):
-        save_config()
+        save_config(True)
     return {"status": "success"}
 
 
@@ -336,4 +399,5 @@ def individuals_ajax():
     load_config()
     return data["individuals"]
 
-run(app, host='0.0.0.0', port=80, debug=True) # TODO: Change to False
+if __name__ == "__main__":
+    run(app, host='0.0.0.0', port=80, debug=True) # TODO: Change to False

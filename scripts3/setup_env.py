@@ -20,17 +20,17 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-import os
-from subprocess import run
-from ctf_utils import load_config, prompt_rmdir_warning, rmdir, mkdir, base_dir
-from ctf_utils import copy
 from command import run_command
+from ctf_utils import load_config, prompt_rmdir_warning, rmdir, mkdir, base_dir, copy
+from json import loads 
+from os.path import join
 from string import Template
+from subprocess import run
 
 def create_remote_repo(repo_owner, repo_name, description = None, path = None):
     print(f'[*] Creating {repo_name} remote repository')
     mkdir()
-    r, _, _ = run_command(f"gh repo create {repo_name} --private --description \"{description}\"", os.path.join(path, ".."))
+    r, _, _ = run_command(f"gh repo create {repo_name} --private --description \"{description}\"", join(path, ".."))
     if r is None:
         print(f'[*] Failed to create remote repository "{repo_name}".')
         print('[*] Response:', r)
@@ -48,13 +48,18 @@ def init_repo(dir_path):
         return False
     return True
 
-def create_local_repo(repo_name, repo_location):
-    print(f'[*] Creating {repo_name} local repositoy at {os.path.join(repo_location, repo_name)}.')
-    mkdir(os.path.join(repo_location, repo_name))
-    run_command(f"gh repo create {repo_name} --private --confirm", repo_location)
+def create_local_repo(repo_name, repo_location, repo_owner, team=None, public=False):
+    print(f'[*] Creating {repo_name} local repositoy at {join(repo_location, repo_name)}.')
+    mkdir(join(repo_location, repo_name))
+    public_flag = "public" if public else "private"
+    run_command(f"gh repo create {repo_owner}/{repo_name} --{public_flag}" + (f" --team {team}" if (team != None) else ""), repo_location)
     return True
 
 def commit_and_push(path, msg):
+    _, _, r = run_command('git pull', path)
+    if r != 0:
+        print(f'[*] Failed to git pull in {path}.')
+        return False
     _, _, r = run_command('git add .', path)
     if r != 0:
         print(f'[*] Failed to git add . in {path}.')
@@ -70,11 +75,11 @@ def commit_and_push(path, msg):
     return True
 
 def create_flag(path):
-    with open(os.path.join(path, 'flag'), "w") as f:
+    with open(join(path, 'flag'), "w") as f:
         f.write('script_will_put_random_string_here')
 
 def create_xinetd_config(problem_info, repo_dir_path, bin_name, template_path):
-    with open(os.path.join(base_dir(), template_path, 'xinetd_conf.template'), 'r') as f:
+    with open(join(base_dir(), template_path, 'xinetd_conf.template'), 'r') as f:
         service_conf = f.read()
 
     service_conf_name = f'{bin_name}_service_conf'
@@ -88,7 +93,7 @@ def create_xinetd_config(problem_info, repo_dir_path, bin_name, template_path):
                                 bin_dst_path = bin_dst_path, \
                                 bin_args = bin_args, \
                                 port = port)
-    with open(os.path.join(repo_dir_path,  service_conf_name), 'w') as f:
+    with open(join(repo_dir_path,  service_conf_name), 'w') as f:
         f.write(service_conf)
 
     return service_conf_name
@@ -103,7 +108,7 @@ def make_xinetd_exec_env(problem_info, repo_dir_path, bin_name, template_path):
     return exec_command
 
 def create_dockerfile(problem_info, repo_dir_path, template_path, sed_cmd):
-    with open(os.path.join(base_dir(), template_path, "dockerfile.template"), 'r') as f:
+    with open(join(base_dir(), template_path, "dockerfile.template"), 'r') as f:
         dockerfile = f.read()
 
     base_image = problem_info['base_image']
@@ -133,21 +138,23 @@ def create_dockerfile(problem_info, repo_dir_path, template_path, sed_cmd):
                               bin_dst_path = bin_dst_path, \
                               exec_command = exec_command)
 
-    with open(os.path.join(repo_dir_path, 'Dockerfile'), 'w') as f:
+    with open(join(repo_dir_path, 'Dockerfile'), 'w') as f:
         f.write(dockerfile)
 
-def local_setup(repo_owner, scoreboard_name, problems, template_path, repo_location, teams):
+def local_setup(repo_owner, scoreboard_name, problems, template_path, repo_location, teams, admin_config_file=None):
     print('[*] Start local setup')
     # Create root directory for CTF env.
-    prompt_rmdir_warning(os.path.join(repo_location, repo_owner))
-    rmdir(os.path.join(repo_location, repo_owner))
-    mkdir(os.path.join(repo_location, repo_owner))
+    prompt_rmdir_warning(join(repo_location, repo_owner))
+    rmdir(join(repo_location, repo_owner))
+    mkdir(join(repo_location, repo_owner))
 
     # Setup local scoreboard repo
-    scoreboard_dir_path = os.path.join(repo_location, repo_owner)
-    if create_local_repo( scoreboard_name, scoreboard_dir_path):
-        open(os.path.join(scoreboard_dir_path, scoreboard_name, 'score.csv'), 'w').close()
-        commit_and_push(os.path.join(scoreboard_dir_path, scoreboard_name), 'Initialize scoreboard')
+    scoreboard_dir_path = join(repo_location, repo_owner)
+    if create_local_repo( scoreboard_name, scoreboard_dir_path, repo_owner, True):
+        repo_path = join(scoreboard_dir_path, scoreboard_name)
+        open(join(repo_path, 'score.csv'), 'w').close()
+        run(f'ln -s {admin_config_file} {repo_path}/config.json')
+        commit_and_push(join(scoreboard_dir_path, scoreboard_name), 'Initialize scoreboard')
 
     # Setup local problems repo
     for team_name in teams:
@@ -157,9 +164,9 @@ def local_setup(repo_owner, scoreboard_name, problems, template_path, repo_locat
         for problem_name in problems:
             problem = problems[problem_name]
             repo_name = team[problem_name]["repo_name"]
-            repo_dir_path = os.path.join(repo_location, repo_owner)
-            if create_local_repo(repo_name, repo_dir_path):
-                repo_dir_path = os.path.join(repo_dir_path, repo_name)
+            repo_dir_path = join(repo_location, repo_owner)
+            if create_local_repo(repo_name, repo_dir_path, repo_owner, team):
+                repo_dir_path = join(repo_dir_path, repo_name)
                 print('[*] Copy binary')
                 copy(problem['bin_src_path'], repo_dir_path)
                 print('[*] Create flag file')
@@ -175,5 +182,6 @@ def setup_env(admin_config_file, repo_location):
     problems = admin_config['problems']
     template_path = admin_config['template_path']
     teams = admin_config['teams']
-    
-    local_setup(repo_owner, scoreboard_name, problems, template_path, repo_location, teams)
+    individuals = admin_config['individuals']
+
+    local_setup(repo_owner, scoreboard_name, problems, template_path, repo_location, teams, admin_config_file)

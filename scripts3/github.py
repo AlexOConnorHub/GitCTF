@@ -58,15 +58,21 @@ def result(r, expected_code):
         return None
 
 def process_data(data):
-    data = loads(data)
+    try:
+        data = loads(data)
+    except:
+        # Assume if loads fails, it's because it's already an object
+        pass
     final = ""
     for key in data:
         final += f" -f {key}=\"{data[key]}\""
     return final
 
-def request(query, data="{}", expected_code=200):
-    r, _, _ = run_command(f"gh api {query} -i {process_data(data)}", None)
-    return result(r, expected_code)
+def request(url, data="{}", expected_code=200, method=None):
+    if method is None:
+        method = "POST" if data != "{}" else "GET"
+    r, _, _ = run_command(f"gh api --method {method} {url} -i {process_data(data)}", None)
+    return result(r, expected_code) if expected_code != 204 else True
 
 def poll(query):
     r, _, _ = run_command(f'gh api {query} -i'), None

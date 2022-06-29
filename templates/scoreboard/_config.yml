@@ -1,0 +1,4 @@
+title: Git CTF Scoreboard
+description: This webpage is a scoreboard for a Git CTF.
+github_username:  $repo_owner
+theme: jekyll-theme-hacker

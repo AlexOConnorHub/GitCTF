@@ -24,19 +24,8 @@
 import subprocess
 import shlex
 
-def run_command(command, path) -> list:
-    process = subprocess.Popen(shlex.split(command), cwd=path \
-            , stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    whole_output = ''
-    while True:
-        output = process.stdout.readline()
-        if output == b'' and process.poll() is not None:
-            break
-        if output:
-            print(output.decode('utf-8'))
-            whole_output = whole_output + output.decode('utf-8')
-
-    error = process.communicate()[1]
-    return whole_output, error, process.returncode
-
-
+def run_command(command, path=None) -> list:
+    p = subprocess.run(shlex.split(command), cwd=path, capture_output=True)
+    print(p.stdout.decode('utf-8'))
+    print(p.stderr.decode('utf-8'))
+    return p.stdout.decode('utf-8'), p.stderr.decode('utf-8'), p.returncode

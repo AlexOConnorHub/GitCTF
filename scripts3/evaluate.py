@@ -129,7 +129,7 @@ def commit_and_push(scoreboard_dir):
     if r != 0:
         print('[*] Failed to commit score.csv.')
         return False
-    _, _, r = run_command('git push origin master', scoreboard_dir)
+    _, _, r = run_command('git push origin main', scoreboard_dir)
     if r != 0:
         print('[*] Failed to push the score.')
         return False

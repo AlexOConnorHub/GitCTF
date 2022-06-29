@@ -22,44 +22,40 @@
 #  limitations under the License.
 from command import run_command
 from ctf_utils import load_config, prompt_rmdir_warning, rmdir, mkdir, base_dir, copy
-from json import loads 
+from github import request
+from json import dumps
 from os.path import join
+from shutil import copyfile
 from string import Template
-from subprocess import run
 
-def create_remote_repo(repo_owner, repo_name, description = None, path = None):
-    print(f'[*] Creating {repo_name} remote repository')
-    mkdir()
-    r, _, _ = run_command(f"gh repo create {repo_name} --private --description \"{description}\"", join(path, ".."))
-    if r is None:
-        print(f'[*] Failed to create remote repository "{repo_name}".')
-        print('[*] Response:', r)
-    else:
-        print(f'[*] Successfully created remote repository "{repo_name}".')
-
-def init_repo(dir_path):
-    _, _, r = run_command('git init', dir_path)
+def create_local_repo(repo_path):
+    _, _, r = run_command(f'git init', repo_path)
     if r != 0:
-        print('[*] Failed to git init')
-        return False
-    _, _, r = run_command(f'git remote add origin https://github.com/{dir_path}.git', dir_path)
-    if r != 0:
-        print(f'[*] Failed to git remote add origin {dir_path}.')
+        print(f'[*] Failed to create empty repository in {repo_path}.')
         return False
     return True
 
-def create_local_repo(repo_name, repo_location, repo_owner, team=None, public=False):
-    print(f'[*] Creating {repo_name} local repositoy at {join(repo_location, repo_name)}.')
-    mkdir(join(repo_location, repo_name))
+def create_remote_repo(repo_name, repo_location, repo_owner, team=None, public=False):
+    print(f'[*] Creating {repo_name} repositoy .')
     public_flag = "public" if public else "private"
-    run_command(f"gh repo create {repo_owner}/{repo_name} --{public_flag}" + (f" --team {team}" if (team != None) else ""), repo_location)
+    _, e, r = run_command(f"gh repo create {repo_owner}/{repo_name} --{public_flag} --push --source {join(repo_location, repo_name)}" + (f" --team {team}" if (team != None) else ""), repo_location)
+    if r != 0:
+        print(f'[*] Failed to create repository "{repo_name}".')
+        print('[*] Response:', e)
+        return False
+    if team != None:
+        if not request(f"/orgs/{repo_owner}/teams/{team}/repos/{repo_owner}/{repo_name}", dumps({"permission": "push"}), 204, "PUT"):
+            print(f'[*] Failed to set team permission for repository "{repo_name}".')
+            return False
     return True
 
 def commit_and_push(path, msg):
-    _, _, r = run_command('git pull', path)
-    if r != 0:
-        print(f'[*] Failed to git pull in {path}.')
-        return False
+    if commit(path, msg):
+        if push(path, f"Merge for commit {msg}"):
+            return True
+    return False
+
+def commit(path, msg):
     _, _, r = run_command('git add .', path)
     if r != 0:
         print(f'[*] Failed to git add . in {path}.')
@@ -68,11 +64,35 @@ def commit_and_push(path, msg):
     if r != 0:
         print(f'[*] Failed to commit in {path}.')
         return False
-    _, _, r = run_command('git push -f origin master', path)
+
+def push(path, merge_msg):
+    _, _, r = run_command('git push', path)
     if r != 0:
-        print(f'[*] Failed to push in {path}.')
-        return False
+        _, _, r = run_command('git pull', path)
+        if r != 0:
+            print(f'[*] Failed to git pull in {path}.')
+            return False
+        _, _, r = run_command(f'git commit -m "{merge_msg}"', path)
+        if r != 0:
+            print(f'[*] Failed to commit in {path}.')
+            return False
+        _, _, r = run_command('git push', path)
+        if r != 0:
+            print(f'[*] Failed to push in {path}.')
+            return False
     return True
+
+def make_scoreboard_site(site_path, template_path, repo_owner):
+    with open(join(template_path, 'scoreboard', '_config.yml'), 'r') as f:
+        site_content = f.read()
+    site_index_template = Template(site_content)
+    site_index = site_index_template.substitute(repo_owner = site_path)
+    with open(join(site_path, '_config.yml'), 'w') as f:
+        f.write(site_index)
+    copyfile(join(template_path, 'scoreboard', 'index.markdown'), site_path)
+    copyfile(join(template_path, 'scoreboard', 'about.markdown'), site_path)
+    copyfile(join(template_path, 'scoreboard', '404.html'), site_path)
+    copyfile(join(template_path, 'scoreboard', 'Gemfile'), site_path)
 
 def create_flag(path):
     with open(join(path, 'flag'), "w") as f:
@@ -144,17 +164,21 @@ def create_dockerfile(problem_info, repo_dir_path, template_path, sed_cmd):
 def local_setup(repo_owner, scoreboard_name, problems, template_path, repo_location, teams, admin_config_file=None):
     print('[*] Start local setup')
     # Create root directory for CTF env.
-    prompt_rmdir_warning(join(repo_location, repo_owner))
-    rmdir(join(repo_location, repo_owner))
-    mkdir(join(repo_location, repo_owner))
+    repo_root_dir_path = join(repo_location, repo_owner)
+    prompt_rmdir_warning(repo_root_dir_path)
+    rmdir(repo_root_dir_path)
+    mkdir(repo_root_dir_path)
 
-    # Setup local scoreboard repo
-    scoreboard_dir_path = join(repo_location, repo_owner)
-    if create_local_repo( scoreboard_name, scoreboard_dir_path, repo_owner, True):
-        repo_path = join(scoreboard_dir_path, scoreboard_name)
-        open(join(repo_path, 'score.csv'), 'w').close()
-        run(f'ln -s {admin_config_file} {repo_path}/config.json')
-        commit_and_push(join(scoreboard_dir_path, scoreboard_name), 'Initialize scoreboard')
+    # Create repo for scoreboard, and add files
+    repo_path = join(repo_root_dir_path, scoreboard_name)
+    mkdir(repo_path)
+    open(join(repo_path, 'score.csv'), 'w').close()
+    make_scoreboard_site(repo_path, template_path, repo_owner)
+    run_command(f"ln {admin_config_file} {join(repo_path, 'config.json')}")
+    print(f'[*] Creating empty repositoy in {repo_location}.')
+    create_local_repo(repo_path)
+    commit(repo_path, 'Initial commit')
+    create_remote_repo( scoreboard_name, repo_root_dir_path, repo_owner, public=True)
 
     # Setup local problems repo
     for team_name in teams:
@@ -164,16 +188,18 @@ def local_setup(repo_owner, scoreboard_name, problems, template_path, repo_locat
         for problem_name in problems:
             problem = problems[problem_name]
             repo_name = team[problem_name]["repo_name"]
-            repo_dir_path = join(repo_location, repo_owner)
-            if create_local_repo(repo_name, repo_dir_path, repo_owner, team):
-                repo_dir_path = join(repo_dir_path, repo_name)
-                print('[*] Copy binary')
-                copy(problem['bin_src_path'], repo_dir_path)
-                print('[*] Create flag file')
-                create_flag(repo_dir_path)
-                print('[*] Make Dockerfile')
-                create_dockerfile(problem, repo_dir_path, template_path, problem['sed_cmd'])
-                commit_and_push(repo_dir_path, f"Add problem: {repo_name}")
+            repo_path = join(repo_root_dir_path, repo_name)
+            mkdir(repo_path)
+            print('[*] Copy binary')
+            copy(problem['bin_src_path'], repo_path)
+            print('[*] Create flag file')
+            create_flag(repo_path)
+            print('[*] Make Dockerfile')
+            create_dockerfile(problem, repo_path, template_path, problem['sed_cmd'])
+            print(f'[*] Creating empty repositoy in {repo_location}.')
+            create_local_repo(repo_path)
+            commit(repo_path, 'Initial commit') # Will fail
+            create_remote_repo(repo_name, repo_root_dir_path, repo_owner, team=team["slug"])
 
 def setup_env(admin_config_file, repo_location):
     admin_config = load_config(admin_config_file)

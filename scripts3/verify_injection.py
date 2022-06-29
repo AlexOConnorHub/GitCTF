@@ -46,7 +46,7 @@ def verify_injection(team, config_file):
     repo_name = config['teams'][team]['repo_name']
     clone(repo_owner, repo_name)
     branches = list_branches(repo_name)
-    branches.remove("master") # master branch is not verification target
+    branches.remove("main") # main branch is not verification target
 
     for branch in branches:
         checkout(repo_name, branch)
@@ -54,17 +54,17 @@ def verify_injection(team, config_file):
         bug_branch_result, _ = \
             verify_exploit(exploit_dir, repo_name, branch, timeout, config)
 
-        checkout(repo_name, "master")
-        master_result, _ = \
-            verify_exploit(exploit_dir, repo_name, "master", timeout, config)
+        checkout(repo_name, "main")
+        main_result, _ = \
+            verify_exploit(exploit_dir, repo_name, "main", timeout, config)
 
         rmdir(exploit_dir)
 
-        if master_result == False and bug_branch_result == True:
+        if main_result == False and bug_branch_result == True:
             print(f'[*] Successflly verified branch "{branch}".')
         elif bug_branch_result == True :
             print(f'[*] Exploit for branch "{branch}" works, but it also works on ' \
-                   'master branch, which indicates some error.')
+                   'main branch, which indicates some error.')
             sys.exit()
         else :
             print(f'[*] Failed to verify exploit in branch "{branch}".')

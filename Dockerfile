@@ -28,11 +28,18 @@ EXPOSE 80
 ENV PYTHONUNBUFFERED=1
 ARG GH_TOKEN_BUILD="PLEASE_SET_GH_TOKEN_BUILD"
 ENV GH_TOKEN=$GH_TOKEN_BUILD
+WORKDIR /tmp
 
 # Download and install packages needed
-RUN apk add --update --no-cache python3 git github-cli gnupg zip; \
+RUN apk add --update --no-cache python3 git gnupg zip; \
     python3 -m ensurepip; \
     pip3 install --no-cache --upgrade setuptools python-dateutil docker bottle; \
+    # Adding gh 2.13 for `--clone` option in `gh repo create`
+    wget https://github.com/cli/cli/releases/download/v2.13.0/gh_2.13.0_linux_amd64.tar.gz; \
+    tar -xzf gh_2.13.0_linux_amd64.tar.gz; \
+    mv gh_2.13.0_linux_amd64/bin/gh /usr/local/bin/; \
+    # git settings. `main` is set as the default branch
+    git config --global init.defaultBranch main; \
     git config --global user.name $(gh api /user -q .login); \
     git config --global user.email $(gh api /user/emails -q .[1].email); \
     git config --global credential.helper store; \
@@ -53,8 +60,8 @@ COPY web/fonts/*     /srv/gitctf/public/fonts/
 COPY web/images/*    /srv/gitctf/public/images/
 COPY web/css/*       /srv/gitctf/public/css/
 COPY web/templates/* /srv/gitctf/templates/
+# COPY configuration/config.json /etc/gitctf/
 COPY web/pages/*     /srv/gitctf/pages/
 COPY scripts3/*      /usr/local/bin/
-# COPY configuration/.config.json /etc/gitctf/
 
 ENTRYPOINT [ "/usr/local/bin/docker_entry.py" ]

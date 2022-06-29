@@ -21,13 +21,15 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+from bottle import request, run, static_file, Bottle, redirect, response
 from cmath import exp
-from glob import glob
-from bottle import request, run, static_file, Bottle, redirect
+from command import run_command
+from ctf_utils import rmdir
+from evaluate import sync_scoreboard
 from github import request as gh
+from glob import glob
 from json import dumps, loads
 from os.path import exists, join, getmtime
-from ctf_utils import rmdir
 from setup_env import setup_env, commit_and_push
 from shutil import move
 from string import Template
@@ -40,23 +42,39 @@ if exists(config_file_path):
     data_last_modified = getmtime(config_file_path)
 
 def load_config():
-    global data, data_last_modified
+    global data, data_last_modified, scoreboard_path
     if exists(config_file_path):
         if data_last_modified != getmtime(config_file_path):
             with open(config_file_path, "r") as f:
                 data = loads(f.read())
+            data_last_modified = getmtime(config_file_path)
+        scoreboard_path = f"/usr/local/share/{data.get('repo_owner')}/{data.get('repo_owner')}.github.io"
+        if exists(scoreboard_path):
+            sync_scoreboard(scoreboard_path)
         return True
     else:
         return False
 
 def save_config(push_changes):
-    global data, data_last_modified
-    with open(config_file_path, "w") as f:
-        f.write(dumps(data))
-    data_last_modified = getmtime(config_file_path)
+    global data, data_last_modified, scoreboard_path
     scoreboard_path = f"/usr/local/share/{data['repo_owner']}/{data['repo_owner']}.github.io"
+    with open(config_file_path, "w") as f:
+        f.write(dumps(data, indent=4))
+    data_last_modified = getmtime(config_file_path)
     if push_changes and exists(scoreboard_path):
-        commit_and_push(scoreboard_path, "Updated config.json")
+        if not commit_and_push(scoreboard_path, "Updated config.json"):
+            _, _, r = run_command('git pull', scoreboard_path)
+            if r != 0:
+                print(f'[*] Failed to git pull in {scoreboard_path}.')
+                return False
+            _, _, r = run_command('git commit -m "Merging updated config.json"', scoreboard_path)
+            if r != 0:
+                print(f'[*] Failed to git commit in {scoreboard_path}. Manual intervention required.')
+                return False
+            _, _, r = run_command('git push', scoreboard_path)
+            if r != 0:
+                print(f'[*] Failed to git push in {scoreboard_path}.')
+                return False
     
 def get_id(username):
     user_json = gh(f"/users/{username}")
@@ -237,6 +255,9 @@ def manage_form():
         data["exploit_timeout"]["exercise_phase"] = form_exploit_timeout_exersize
         dirty = True
     if (len(data["teams"]) - 1 != int(form_number_of_teams)):
+        if (len(data["teams"]) - 1 > int(form_number_of_teams)):
+            response.status = 400
+            return {"status": "error", "message": "The number of teams is too small"}
         stored_items = {}
         for team in data["teams"]:
             stored_items[team] = {
@@ -398,6 +419,13 @@ def individuals_ajax():
     global data
     load_config()
     return data["individuals"]
+
+# @app.route("/test")
+# def test():
+#     data["repo_owner"] = "GitCTF-Test"
+#     load_config()
+#     setup_env(config_file_path, "/usr/local/share")
+    
 
 if __name__ == "__main__":
     run(app, host='0.0.0.0', port=80, debug=True) # TODO: Change to False

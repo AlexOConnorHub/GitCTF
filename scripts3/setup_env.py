@@ -161,6 +161,20 @@ def create_dockerfile(problem_info, repo_dir_path, template_path, sed_cmd):
     with open(join(repo_dir_path, 'Dockerfile'), 'w') as f:
         f.write(dockerfile)
 
+def create_team_repo(problem, repo_name, repo_root_dir_path, template_path, repo_owner, slug):
+    repo_path = join(repo_root_dir_path, repo_name)
+    mkdir(repo_path)
+    print('[*] Copy binary')
+    copy(problem['bin_src_path'], repo_path)
+    print('[*] Create flag file')
+    create_flag(repo_path)
+    print('[*] Make Dockerfile')
+    create_dockerfile(problem, repo_path, template_path, problem['sed_cmd'])
+    print(f'[*] Creating empty repositoy in {repo_path}.')
+    create_local_repo(repo_path)
+    commit(repo_path, 'Initial commit')
+    create_remote_repo(repo_name, repo_root_dir_path, repo_owner, team=slug)
+
 def local_setup(repo_owner, scoreboard_name, problems, template_path, repo_location, teams, admin_config_file=None):
     print('[*] Start local setup')
     # Create root directory for CTF env.
@@ -188,18 +202,7 @@ def local_setup(repo_owner, scoreboard_name, problems, template_path, repo_locat
         for problem_name in problems:
             problem = problems[problem_name]
             repo_name = team[problem_name]["repo_name"]
-            repo_path = join(repo_root_dir_path, repo_name)
-            mkdir(repo_path)
-            print('[*] Copy binary')
-            copy(problem['bin_src_path'], repo_path)
-            print('[*] Create flag file')
-            create_flag(repo_path)
-            print('[*] Make Dockerfile')
-            create_dockerfile(problem, repo_path, template_path, problem['sed_cmd'])
-            print(f'[*] Creating empty repositoy in {repo_location}.')
-            create_local_repo(repo_path)
-            commit(repo_path, 'Initial commit') # Will fail
-            create_remote_repo(repo_name, repo_root_dir_path, repo_owner, team=team["slug"])
+            create_team_repo(problem, repo_name, repo_root_dir_path, template_path, repo_owner, team=team["slug"])
 
 def setup_env(admin_config_file, repo_location):
     admin_config = load_config(admin_config_file)

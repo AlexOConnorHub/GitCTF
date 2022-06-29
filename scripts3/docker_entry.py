@@ -22,15 +22,12 @@
 #  limitations under the License.
 
 from bottle import request, run, static_file, Bottle, redirect, response
-from cmath import exp
-from command import run_command
 from ctf_utils import rmdir
 from evaluate import sync_scoreboard
 from github import request as gh
-from glob import glob
 from json import dumps, loads
 from os.path import exists, join, getmtime
-from setup_env import setup_env, commit_and_push
+from setup_env import create_local_repo, setup_env, commit_and_push, create_team_repo
 from shutil import move
 from string import Template
 
@@ -62,20 +59,8 @@ def save_config(push_changes):
         f.write(dumps(data, indent=4))
     data_last_modified = getmtime(config_file_path)
     if push_changes and exists(scoreboard_path):
-        if not commit_and_push(scoreboard_path, "Updated config.json"):
-            _, _, r = run_command('git pull', scoreboard_path)
-            if r != 0:
-                print(f'[*] Failed to git pull in {scoreboard_path}.')
-                return False
-            _, _, r = run_command('git commit -m "Merging updated config.json"', scoreboard_path)
-            if r != 0:
-                print(f'[*] Failed to git commit in {scoreboard_path}. Manual intervention required.')
-                return False
-            _, _, r = run_command('git push', scoreboard_path)
-            if r != 0:
-                print(f'[*] Failed to git push in {scoreboard_path}.')
-                return False
-    
+        commit_and_push(scoreboard_path, "Updated config.json")
+
 def get_id(username):
     user_json = gh(f"/users/{username}")
     if user_json is None or "id" not in user_json:
@@ -217,7 +202,6 @@ def setup_config():
         move(config_file_path, f"{config_file_path}.bk")
     save_config(False)
     setup_env(config_file_path, "/usr/local/share")
-    # main("setup", ["--admin-conf", config_file_path, "--repo_location", "/usr/local/share/"])
     return {"status": "success"}
 
 @app.route("/manage-form", method="POST")
@@ -258,33 +242,24 @@ def manage_form():
         if (len(data["teams"]) - 1 > int(form_number_of_teams)):
             response.status = 400
             return {"status": "error", "message": "The number of teams is too small"}
-        stored_items = {}
-        for team in data["teams"]:
-            stored_items[team] = {
-                "pub_key_id": data["teams"][team]["pub_key_id"],
-                "slug": data["teams"][team]["slug"],
-            }
-        data["teams"] = {
-            "instructor": {
-                "repo_name": data["teams"]["instructor"]["repo_name"],
-                "pub_key_id": stored_items["instructor"]["pub_key_id"],
-                "slug": stored_items["instructor"]["slug"],
-            }
-        }
         for x in range(1, 1 + int(form_number_of_teams)):
             team_key = f"team-{x}"
-            team_value = {
-                "pub_key_id": "PLEASE_SUBMIT_PULL_REQUEST" if team_key not in stored_items else stored_items[team_key]["pub_key_id"],
-                "slug": create_team(team_key) if team_key not in stored_items else stored_items[team_key]["slug"],
-            }
-            for problem in data["problems"]:
-                team_value[problem] = {
-                    "repo_name": f"{team_key}-{problem}",
+            if (team_key not in data["teams"]):
+                data["teams"][team_key] = {
+                    "pub_key_id": "PLEASE_SUBMIT_PULL_REQUEST",
+                    "slug": create_team(team_key),
                 }
-                for y in range(1, int(data["problems"][problem]["number_of_bugs"])):
-                    team_value[problem][f"bug-{y}"] = "HASH_TO_BE_DETERMINED"
-            data["teams"][team_key] = team_value
-        dirty = True
+                for problem_name in data["problems"]:
+                    data["teams"][team_key][problem_name] = {
+                        "repo_name": f"{team_key}-{problem_name}",
+                    }
+                    for y in range(1, 1 + int(data["problems"][problem_name]["number_of_bugs"])):
+                        data["teams"][team_key][problem_name][f"bug-{y}"] = "HASH_TO_BE_DETERMINED"
+                    problem = data["problems"][problem_name]
+                    repo_name = data["teams"][team_key][problem_name]["repo_name"]
+                    repo_location = join("/usr/local/share", data["repo_owner"])
+                    create_team_repo(problem, repo_name, repo_location, data["template_path"], data["repo_owner"], team=data["teams"][team_key]["slug"])
+                dirty = True
     if (dirty):
         save_config(True)
     return {"status": "success"}
@@ -419,12 +394,6 @@ def individuals_ajax():
     global data
     load_config()
     return data["individuals"]
-
-# @app.route("/test")
-# def test():
-#     data["repo_owner"] = "GitCTF-Test"
-#     load_config()
-#     setup_env(config_file_path, "/usr/local/share")
     
 
 if __name__ == "__main__":

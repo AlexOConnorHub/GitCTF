@@ -87,12 +87,13 @@ def make_scoreboard_site(site_path, template_path, repo_owner):
         site_content = f.read()
     site_index_template = Template(site_content)
     site_index = site_index_template.substitute(repo_owner = site_path)
-    with open(join(site_path, '_config.yml'), 'w') as f:
+    with open(join(template_path, '_config.yml'), 'w') as f:
         f.write(site_index)
-    copyfile(join(template_path, 'scoreboard', 'index.markdown'), site_path)
-    copyfile(join(template_path, 'scoreboard', 'about.markdown'), site_path)
-    copyfile(join(template_path, 'scoreboard', '404.html'), site_path)
-    copyfile(join(template_path, 'scoreboard', 'Gemfile'), site_path)
+    # copyfile(join(template_path, 'scoreboard', '_config.yml'), site_path)
+    copyfile(join(template_path, 'scoreboard', 'index.markdown'), join(site_path, 'index.markdown'))
+    copyfile(join(template_path, 'scoreboard', 'about.markdown'), join(site_path, 'about.markdown'))
+    copyfile(join(template_path, 'scoreboard', '404.html'), join(site_path, '404.html'))
+    copyfile(join(template_path, 'scoreboard', 'Gemfile'), join(site_path, 'Gemfile'))
 
 def create_flag(path):
     with open(join(path, 'flag'), "w") as f:
@@ -186,7 +187,7 @@ def local_setup(repo_owner, scoreboard_name, problems, template_path, repo_locat
     # Create repo for scoreboard, and add files
     repo_path = join(repo_root_dir_path, scoreboard_name)
     mkdir(repo_path)
-    open(join(repo_path, 'score.csv'), 'w').close()
+    # open(join(repo_path, 'score.csv'), 'w').close()
     make_scoreboard_site(repo_path, template_path, repo_owner)
     run_command(f"ln {admin_config_file} {join(repo_path, 'config.json')}")
     print(f'[*] Creating empty repositoy in {repo_location}.')
@@ -202,7 +203,7 @@ def local_setup(repo_owner, scoreboard_name, problems, template_path, repo_locat
         for problem_name in problems:
             problem = problems[problem_name]
             repo_name = team[problem_name]["repo_name"]
-            create_team_repo(problem, repo_name, repo_root_dir_path, template_path, repo_owner, team=team["slug"])
+            create_team_repo(problem, repo_name, repo_root_dir_path, template_path, repo_owner, slug=team["slug"])
 
 def setup_env(admin_config_file, repo_location):
     admin_config = load_config(admin_config_file)

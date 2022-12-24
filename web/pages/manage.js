@@ -18,7 +18,7 @@ $('#config-form-submit').on("click",
                     }
                     teams[team].push(individual);
                 }
-                $(".modal-body").html('<div class="row"></div>');
+                $(".modal-body").html('<div class="row justify-content-around"></div>');
                 let tableItemPartOne = '<tr><td id="team-member-name-label">';
                 let tableItemPartTwo = '</td><td><button type="button" class="btn btn-danger" onclick="$(this).closest(\'tr\').remove();""><i class="fas fa-trash-alt"></i></button></td></tr>';
                 let template = $(".template");
@@ -36,7 +36,26 @@ $('#config-form-submit').on("click",
                     card.find(".btn").click(
                         function() {
                             let name = card.find("#team-member-name").val()
-                            card.find(".table").last().append(tableItemPartOne + name + tableItemPartTwo);
+                            $.ajax({
+                                type: "GET",
+                                url: "https://api.github.com/users/" + name,
+                                success: (data) => {
+                                    card.find(".table").last().append(
+                                        tableItemPartOne +
+                                        "<img src='" + data.avatar_url + "' width='50' height='50' class='rounded-circle' /> " +
+                                        "<span style='margin-left: 10px;'></span>" +
+                                        name +
+                                        tableItemPartTwo
+                                    );
+                                },
+                                error: (data) => {
+                                    card.find(".table").last().append(
+                                        tableItemPartOne +
+                                        name +
+                                        tableItemPartTwo
+                                    );
+                                }
+                            });
                         }
                     );
                     $(".modal-body").children().append(card);

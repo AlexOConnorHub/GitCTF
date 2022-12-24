@@ -2,7 +2,7 @@
 
 Git-based CTF is a novel attack-and-defense CTF platform that can be easily
 hosted as an in-course activity proposed in our [paper](https://www.usenix.org/system/files/conference/ase18/ase18-paper_wi.pdf) at USENIX ASE. This
-repository contains [scripts](scripts) for automating ```Git-based CTF```. To
+repository contains [scripts](scripts) for automating `Git-based CTF`. To
 see how to configure and play Git-based CTF, see the followings.
 
 **If you want to see the version covered in our
@@ -139,8 +139,8 @@ Git-based CTF. The machine needs to be time-synchronized with an NTP server.
 - Click the `Watch` button in each team's service repository.
 
 - After the injection phase, you need to create a
-  [`config.json`](configuration/config.json) file, which describes the [basic
-  settings](##configuration) for a CTF.
+  [`config.json`](configuration/config.json) file, which describes the
+  [basic settings](#configuration) for a CTF.
 
 - After the injection phase, you need to fill the commit hash of N-th injected
   bug of each team, with the following command.
@@ -168,7 +168,7 @@ Git-based CTF. The machine needs to be time-synchronized with an NTP server.
 Git-based CTF. This script must be created by an instructor, and distributed to
 students before a CTF begins. You can check out an [example configuration file](https://github.com/KAIST-IS521/2018-Spring/blob/master/Activities/config.json)
 
-### The [config.json](configuration/config.json) file requires the following fields
+### [config.json](configuration/config.json) keys
 
 1. `repo_owner`: The name of the owner of the CTF repositories.
 1. `intended_pts`: Points for exploiting an intended vulnerability.
@@ -225,7 +225,7 @@ Updating this to Python3, adapting to using GitHub Organizations, and adding man
 
 To cite our paper:
 
-```
+```bibtex
 @INPROCEEDINGS{wi:usenixase:2018,
     author = {SeongIl Wi and Jaeseung Choi and Sang Kil Cha},
     title = {Git-based {CTF}: A Simple and Effective Approach to Organizing In-Course Attack-and-Defense Security Competition},

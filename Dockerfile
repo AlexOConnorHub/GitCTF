@@ -43,11 +43,12 @@ RUN apk add --update --no-cache python3 git gnupg zip; \
     git config --global user.name $(gh api /user -q .login); \
     git config --global user.email $(gh api /user/emails -q .[1].email); \
     git config --global credential.helper store; \
+    git config --global init.defaultBranch main; \
     echo https://$(gh api /user -q .id):$GH_TOKEN@github.com > /root/.git-credentials;
 
 # Create directories for the project
 RUN mkdir -p /etc/gitctf; \
-    mkdir -p /usr/local/share/gitctf; \
+    mkdir -p /usr/local/share/gitctf/scoreboard; \
     mkdir -p /srv/gitctf/public/css; \
     mkdir -p /srv/gitctf/public/images; \
     mkdir -p /srv/gitctf/public/fonts; \
@@ -56,6 +57,7 @@ RUN mkdir -p /etc/gitctf; \
 
 # Populate the directories
 COPY templates/*     /usr/local/share/gitctf/
+COPY templates/scoreboard/*     /usr/local/share/gitctf/scoreboard/
 COPY web/fonts/*     /srv/gitctf/public/fonts/
 COPY web/images/*    /srv/gitctf/public/images/
 COPY web/css/*       /srv/gitctf/public/css/

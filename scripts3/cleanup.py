@@ -21,11 +21,40 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-import subprocess
-import shlex
+# if [ "$#" -ne 1 ]; then
+#     echo "Usage: $0 [container name]"
+#     exit 1
+# fi
+# CONTAINER=$1
 
-def run_command(command, path=None) -> list:
-    p = subprocess.run(shlex.split(command), cwd=path, capture_output=True)
-    print(p.stdout.decode('utf-8'))
-    print(p.stderr.decode('utf-8'))
-    return p.stdout.decode('utf-8'), p.stderr.decode('utf-8'), p.returncode
+# docker kill $CONTAINER
+# docker rm $CONTAINER
+# docker images -qf dangling=true | xargs docker rmi
+
+
+# Translate the above script to Python
+
+import sys
+import subprocess
+import docker
+
+if len(sys.argv) != 2:
+    print(f"Usage: ${sys.argv[0]} [container name]")
+    exit(1)
+
+container = sys.argv[1]
+
+client = docker.from_env()
+# kill the docker container
+if container in client.containers.list():
+    client.containers.get(container).kill()
+# subprocess.run(["docker", "kill", container])
+# remove the docker container
+if container in client.containers.list():
+    client.containers.get(container).remove()
+# subprocess.run(["docker", "rm", container])
+# Cleanup dangling images
+client = docker.from_env()
+for image in client.images.list(filters={"dangling": True}):
+    client.images.remove(image.id)
+

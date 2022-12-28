@@ -2,7 +2,7 @@
 
 Git-based CTF is a novel attack-and-defense CTF platform that can be easily
 hosted as an in-course activity proposed in our [paper](https://www.usenix.org/system/files/conference/ase18/ase18-paper_wi.pdf) at USENIX ASE. This
-repository contains [scripts](scripts) for automating ```Git-based CTF```. To
+repository contains [scripts](scripts) for automating `Git-based CTF`. To
 see how to configure and play Git-based CTF, see the followings.
 
 **If you want to see the version covered in our
@@ -13,18 +13,22 @@ In this repo, [AlexOConnorHub](https://www.github.com/AlexOConnorHub) has modifi
 
 ## Setup
 
-### Requirement
+### Steps
 
-1. Instructors should modify the [`config.json`](configuration/config.json) file to
-   start with.
+1. Instructors should setup the `config.json` file. First, a [personal access token](https://github.com/settings/tokens) will need to be generated. Then, taking the generated token, run the two following commands:
 
-1. Students need to obtain the [`config.json`](configuration/config.json) file
+   - `docker build . -t "gitctf" --build-arg GH_TOKEN_BUILD="<INSERT_YOUR_PERSONAL_TOKEN_HERE>"`
+   - `docker run -dit --rm -p 9000:80 --name git gitctf`
+
+    This will start the admin portal for Git-based CTF on port 9000. Follow the instructions for setting up the `config.json` file. After that, the `config.json` will be available at the Github Organization's webpage (`organization-name.github.io`).
+
+2. Students need to obtain the `config.json` file
    prepared by the instructors in Step 1.
 
-1. Each team should prepare for a PGP public & private key pair in their own
-   machine. The teams' public keys should be distributed before the game begins.
+3. Each team should prepare for a PGP public & private key pair in their own
+   machine. The teams' public keys should be distributed through a pull request from one of the teammates.
 
-1. Each student should install GPG and Docker on their own machine in
+4. Each student should install GPG and Docker on their own machine in
    order to play CTF.
 
 ## For Students
@@ -135,8 +139,8 @@ Git-based CTF. The machine needs to be time-synchronized with an NTP server.
 - Click the `Watch` button in each team's service repository.
 
 - After the injection phase, you need to create a
-  [`config.json`](configuration/config.json) file, which describes the [basic
-  settings](##configuration) for a CTF.
+  [`config.json`](configuration/config.json) file, which describes the
+  [basic settings](#configuration) for a CTF.
 
 - After the injection phase, you need to fill the commit hash of N-th injected
   bug of each team, with the following command.
@@ -164,11 +168,8 @@ Git-based CTF. The machine needs to be time-synchronized with an NTP server.
 Git-based CTF. This script must be created by an instructor, and distributed to
 students before a CTF begins. You can check out an [example configuration file](https://github.com/KAIST-IS521/2018-Spring/blob/master/Activities/config.json)
 
-### The [config.json](configuration/config.json) file requires the following fields:
+### [config.json](configuration/config.json) keys
 
-1. `player`: Your GitHub ID.
-1. `player_team`: Your team name.
-1. `score_board`: The URL for the scoreboard repository.
 1. `repo_owner`: The name of the owner of the CTF repositories.
 1. `intended_pts`: Points for exploiting an intended vulnerability.
 1. `unintended_pts`: Points for exploiting an unintended vulnerability.
@@ -180,14 +181,33 @@ students before a CTF begins. You can check out an [example configuration file](
 1. `exploit_timeout`: Timeout for exploit. (in sec.)
     1. `exercise_phase`: Timeout when verify exploit in exercise phase.
     1. `injection_phase`: Timeout when verify exploit in injection phase.
+1. `template_path`: This is the path within the Docker container where the
+   templates are stored.
+1. `instructor`: The Github username of the instructor.
+1. `problems`: The information reguarding each problem.
+   1. `problem-N`: Problem description for problem-N.
+      1. `base_image`: Docker image for the problem.
+      1. `sed_cmd`: sed command for setting up the repositories for the image.
+      1. `service_exe_type`: Service type.
+      1. `number_of_bugs`: Number of bugs injected.
+      1. `injection_points`: Points for injecting the problem.
+      1. `description`: Description of the problem.
+      1. `bin_src_path`: Bin source path.
+      1. `bin_dst_path`: Bin destination path.
+      1. `flag_dst_path`: Flag destination path.
+      1. `bin_args`: Bin arguments.
+      1. `port`: Port of the service.
+      1. `required_packages`: Packages required for the service.
+      1. `injection_target_commit_hash_enc_sign`: Target commit hash of the injection, encrypted and signed.
 1. `teams`: Participating teams' information.
-    1. `repo_name`: The URL for each team's service repository.
     1. `pub_key_id`: The public key ID of the team.
-    1. `bugN`: The commit hash of the N-th injected bug of this team.
+    2. `problem-N` The problem for which the data is relevant
+       1. `repo_name`: The URL for each team's service repository.
+       2. `bug-N`: The commit hash of the N-th injected bug of this team.
 1. `individual`: Participating individuals' information. Each field is separated
    by participants' GitHub IDs.
     1. `pub_key_id`: The public key ID of the individual.
-    1. `team`: Which team does this individual belong to?
+    2. `team`: Which team does this individual belong to?
 
 ## Authors
 
@@ -197,7 +217,7 @@ This research project has been conducted by [SoftSec Lab](https://softsec.kaist.
 - [Jaeseung Choi](https://softsec.kaist.ac.kr/~jschoi/)
 - [Sang Kil Cha](https://softsec.kaist.ac.kr/~sangkilc/)
 
-Updating this to Python3, adapting to using GitHub Organizations, and adding managment of page for the admins.
+Updating this to Python3, adapting to using GitHub Organizations, and adding managment of page for the admin.
 
 - [Alex O'Connor](https://www.github.com/AlexOConnorHub)
 
@@ -205,7 +225,7 @@ Updating this to Python3, adapting to using GitHub Organizations, and adding man
 
 To cite our paper:
 
-```
+```bibtex
 @INPROCEEDINGS{wi:usenixase:2018,
     author = {SeongIl Wi and Jaeseung Choi and Sang Kil Cha},
     title = {Git-based {CTF}: A Simple and Effective Approach to Organizing In-Course Attack-and-Defense Security Competition},

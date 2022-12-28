@@ -41,7 +41,7 @@ def start_get_hash(config, config_file):
         print(f'[*] Get the commit hash of {repo_name} repo.')
         clone(repo_owner, repo_name)
         branches = list_branches(repo_name)
-        branches.remove("master") # Do not consider master branch
+        branches.remove("main") # Do not consider main branch
         for branch in branches:
             checkout(repo_name, branch)
             hash = get_latest_commit_hash(repo_name, int(time.time()), branch)

@@ -51,7 +51,7 @@ def checkout(dir, br):
         print(err)
         sys.exit()
 
-def get_latest_commit_hash(dir, create_time, branch='master'):
+def get_latest_commit_hash(dir, create_time, branch='main'):
     command = f'git -C {dir} rev-list --max-count=1 --before={create_time} origin/{branch}'
     output, err, r = run_command(command, os.getcwd())
     if r != 0:

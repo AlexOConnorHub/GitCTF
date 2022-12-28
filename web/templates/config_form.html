@@ -101,13 +101,8 @@
     </div>
 </form>
 <script>
-    Date.prototype.stdTimezoneOffset = function () {
-        var jan = new Date(this.getFullYear(), 0, 1);
-        var jul = new Date(this.getFullYear(), 6, 1);
-        return Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
-    }
-    let offset = new Date().stdTimezoneOffset()/60;
-    let offset_text = (offset > 0) ? "+" : "-";
+    let offset = new Date().getTimezoneOffset()/60;
+    let offset_text = (offset < 0) ? "+" : "-";
     if (offset < 10) {
         offset_text += "0";
     }

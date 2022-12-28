@@ -30,16 +30,15 @@ from os.path import exists, join, getmtime
 from setup_env import create_local_repo, setup_env, commit_and_push, create_team_repo
 from shutil import move
 from string import Template
+from manage_ctf import start_ctf, update_ctf
 
 config_file_path = "/etc/gitctf/config.json"
 data = {}
 data_last_modified = 0
 
-if exists(config_file_path):
-    data_last_modified = getmtime(config_file_path)
 
 def load_config():
-    global data, data_last_modified, scoreboard_path
+    global data, data_last_modified
     if exists(config_file_path):
         if data_last_modified != getmtime(config_file_path):
             with open(config_file_path, "r") as f:
@@ -52,8 +51,11 @@ def load_config():
     else:
         return False
 
+if exists(config_file_path):
+    load_config()
+
 def save_config(push_changes):
-    global data, data_last_modified, scoreboard_path
+    global data, data_last_modified
     scoreboard_path = f"/usr/local/share/{data['repo_owner']}/{data['repo_owner']}.github.io"
     with open(config_file_path, "w") as f:
         f.write(dumps(data, indent=4))
@@ -128,7 +130,6 @@ def setup_config():
     global data
     if "repo_owner" in data:
         rmdir(join("/usr/local/share", data["repo_owner"]))
-    # owner = check_output(["gh", "api", "/user", "-q", ".login"]).decode()[:-1]
     owner_json = gh("/user")
     if owner_json is None or "login" not in owner_json:
         return {"error": "Failed to get owner's username"}
@@ -163,8 +164,6 @@ def setup_config():
         },
         "teams": {
             "instructor": {
-                "repo_name": "-",
-                "slug": "-",
                 "pub_key_id": "PLEASE_SUBMIT_PULL_REQUEST",
             }
         },
@@ -202,6 +201,7 @@ def setup_config():
         move(config_file_path, f"{config_file_path}.bk")
     save_config(False)
     setup_env(config_file_path, "/usr/local/share")
+    start_ctf(data)
     return {"status": "success"}
 
 @app.route("/manage-form", method="POST")
@@ -262,6 +262,7 @@ def manage_form():
                 dirty = True
     if (dirty):
         save_config(True)
+        update_ctf(data)
     return {"status": "success"}
 
 @app.route("/individuals/update", method="POST")
@@ -397,4 +398,6 @@ def individuals_ajax():
     
 
 if __name__ == "__main__":
+    if (data != {}):
+        start_ctf(data)
     run(app, host='0.0.0.0', port=80, debug=True) # TODO: Change to False

@@ -28,7 +28,6 @@
     },
     "teams": {
         "instructor": {
-            "repo_name": "-",
             "pub_key_id": "PLEASE_SUBMIT_PULL_REQUEST"
         },
         "team-1": {
